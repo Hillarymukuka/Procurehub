@@ -21,7 +21,7 @@ import {
   FolderTree
 } from "lucide-react";
 
-type TabType = "users" | "suppliers" | "categories" | "reports";
+type TabType = "users" | "suppliers" | "categories" | "departments" | "reports";
 
 const SuperAdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -37,6 +37,12 @@ const SuperAdminDashboard: React.FC = () => {
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [isCreateDepartmentOpen, setIsCreateDepartmentOpen] = useState(false);
+  const [departmentForm, setDepartmentForm] = useState({
+    name: "",
+    description: "",
+    budget: "",
+  });
   const [userForm, setUserForm] = useState({
     email: "",
     full_name: "",
@@ -102,6 +108,7 @@ const SuperAdminDashboard: React.FC = () => {
     if (activeTab === "users") loadUsers();
     else if (activeTab === "suppliers") loadSuppliers();
     else if (activeTab === "categories") loadCategories();
+    else if (activeTab === "departments") loadDepartments();
     else if (activeTab === "reports") loadAnalytics();
   }, [activeTab]);
 
@@ -211,6 +218,40 @@ const SuperAdminDashboard: React.FC = () => {
     }
   };
 
+  const handleCreateDepartment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const formData = new FormData();
+      formData.append("name", departmentForm.name);
+      if (departmentForm.description) formData.append("description", departmentForm.description);
+      if (departmentForm.budget) formData.append("budget", departmentForm.budget);
+      
+      await apiClient.post("/api/admin/departments", formData);
+      setSuccess("Department created successfully!");
+      setIsCreateDepartmentOpen(false);
+      setDepartmentForm({ name: "", description: "", budget: "" });
+      await loadDepartments();
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to create department");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteDepartment = async (deptId: number) => {
+    if (!confirm("Are you sure you want to delete this department?")) return;
+    try {
+      await apiClient.delete(`/api/admin/departments/${deptId}`);
+      setSuccess("Department deleted successfully!");
+      await loadDepartments();
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to delete department");
+    }
+  };
+
 const actions = (
     <div className="flex gap-2 text-blue-700">
       <button
@@ -233,6 +274,14 @@ const actions = (
           className="rounded-lg border border-white/50 bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-blue-100"
         >
           Add Category
+        </button>
+      )}
+      {activeTab === "departments" && (
+        <button
+          onClick={() => setIsCreateDepartmentOpen(true)}
+          className="rounded-lg border border-white/50 bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-blue-100"
+        >
+          Add Department
         </button>
       )}
     </div>
@@ -330,6 +379,23 @@ const actions = (
             )}
           />
           <span>Categories ({categories.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("departments")}
+          className={clsx(
+            "group flex items-center gap-2 border-b-2 px-4 py-2 text-sm font-semibold transition-colors",
+            activeTab === "departments"
+              ? "border-primary text-primary"
+              : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
+          )}
+        >
+          <Building2
+            className={clsx(
+              "h-4 w-4 text-slate-400 transition-colors",
+              activeTab === "departments" && "text-primary"
+            )}
+          />
+          <span>Departments ({departments.length})</span>
         </button>
       </div>
 
@@ -758,6 +824,53 @@ const actions = (
         </div>
       )}
 
+      {/* Departments Tab */}
+      {activeTab === "departments" && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {departments.map((dept) => (
+            <div
+              key={dept.id}
+              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-slate-800">{dept.name}</h3>
+                  </div>
+                  {dept.description && (
+                    <p className="mt-2 text-sm text-slate-600">{dept.description}</p>
+                  )}
+                  {dept.budget && (
+                    <p className="mt-2 text-sm font-medium text-slate-700">
+                      Budget: {formatCurrency(dept.budget)}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {dept.head_count} Head{dept.head_count !== 1 ? 's' : ''} of Department
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleDeleteDepartment(dept.id)}
+                    className="text-sm font-semibold text-red-600 hover:text-red-700"
+                    disabled={dept.head_count > 0}
+                    title={dept.head_count > 0 ? "Cannot delete department with assigned HODs" : ""}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {departments.length === 0 && (
+            <div className="col-span-full rounded-xl border border-slate-200 bg-white p-12 text-center">
+              <p className="text-sm text-slate-500">No departments found. Create one to get started.</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Create User Modal */}
       <Modal
         open={isCreateUserOpen}
@@ -934,6 +1047,56 @@ const actions = (
             className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-70"
           >
             {submitting ? "Updating..." : "Update Category"}
+          </button>
+        </form>
+      </Modal>
+
+      {/* Create Department Modal */}
+      <Modal
+        open={isCreateDepartmentOpen}
+        onClose={() => setIsCreateDepartmentOpen(false)}
+        title="Create New Department"
+      >
+        <form onSubmit={handleCreateDepartment} className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-slate-600">Department Name</label>
+            <input
+              type="text"
+              required
+              value={departmentForm.name}
+              onChange={(e) => setDepartmentForm({ ...departmentForm, name: e.target.value })}
+              className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 focus:border-primary focus:outline-none"
+              placeholder="e.g., Information Technology"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-600">Description</label>
+            <textarea
+              rows={3}
+              value={departmentForm.description}
+              onChange={(e) => setDepartmentForm({ ...departmentForm, description: e.target.value })}
+              className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 focus:border-primary focus:outline-none"
+              placeholder="Brief description of the department"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-600">Annual Budget (Optional)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={departmentForm.budget}
+              onChange={(e) => setDepartmentForm({ ...departmentForm, budget: e.target.value })}
+              className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 focus:border-primary focus:outline-none"
+              placeholder="0.00"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-70"
+          >
+            {submitting ? "Creating..." : "Create Department"}
           </button>
         </form>
       </Modal>

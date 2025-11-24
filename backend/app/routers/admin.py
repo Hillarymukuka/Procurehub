@@ -152,6 +152,96 @@ def delete_user(
     return None
 
 
+# ==================== Department Management ====================
+@router.get("/departments", response_model=List[dict])
+def list_departments(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.superadmin)),
+):
+    """List all departments (SuperAdmin only)."""
+    from ..models import Department
+    
+    departments = db.query(Department).order_by(Department.name).all()
+    return [
+        {
+            "id": dept.id,
+            "name": dept.name,
+            "description": dept.description,
+            "budget": float(dept.budget) if dept.budget else None,
+            "head_count": db.query(User).filter(
+                User.role == UserRole.head_of_department
+            ).count(),
+        }
+        for dept in departments
+    ]
+
+
+@router.post("/departments", response_model=dict, status_code=status.HTTP_201_CREATED)
+def create_department(
+    name: str = Form(...),
+    description: Optional[str] = Form(None),
+    budget: Optional[float] = Form(None),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.superadmin)),
+):
+    """Create a new department (SuperAdmin only)."""
+    from ..models import Department
+    
+    # Check if department already exists
+    existing = db.query(Department).filter(Department.name == name).first()
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Department '{name}' already exists"
+        )
+    
+    department = Department(
+        name=name,
+        description=description,
+        budget=budget
+    )
+    
+    db.add(department)
+    db.commit()
+    db.refresh(department)
+    
+    return {
+        "id": department.id,
+        "name": department.name,
+        "description": department.description,
+        "budget": float(department.budget) if department.budget else None,
+    }
+
+
+@router.delete("/departments/{department_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_department(
+    department_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.superadmin)),
+):
+    """Delete a department (SuperAdmin only)."""
+    from ..models import Department
+    
+    department = db.query(Department).filter(Department.id == department_id).first()
+    if not department:
+        raise HTTPException(status_code=404, detail="Department not found")
+    
+    # Check if department has HODs assigned
+    hod_count = db.query(User).filter(
+        User.role == UserRole.head_of_department
+    ).count()
+    
+    if hod_count > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete department with assigned Heads of Department"
+        )
+    
+    db.delete(department)
+    db.commit()
+    return None
+
+
 # ==================== Supplier Management ====================
 @router.get("/suppliers", response_model=List[dict])
 def list_suppliers(

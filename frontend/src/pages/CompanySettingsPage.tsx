@@ -28,6 +28,13 @@ export default function CompanySettingsPage() {
 
   useEffect(() => {
     fetchSettings();
+    
+    // Cleanup function to revoke object URLs when component unmounts
+    return () => {
+      if (logoPreview && logoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
   }, []);
 
   const fetchSettings = async () => {
@@ -60,16 +67,33 @@ export default function CompanySettingsPage() {
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
       if (!file.type.startsWith('image/')) {
         setMessage({ type: 'error', text: 'Please select an image file' });
+        e.target.value = ''; // Clear input
         return;
       }
+      
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        setMessage({ type: 'error', text: 'Logo file must be less than 5MB' });
+        e.target.value = ''; // Clear input
+        return;
+      }
+      
       setLogoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      
+      // Use createObjectURL instead of FileReader for better performance
+      // This creates a temporary URL without loading the entire file into memory
+      const previewUrl = URL.createObjectURL(file);
+      
+      // Clean up previous preview URL if it exists
+      if (logoPreview && logoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(logoPreview);
+      }
+      
+      setLogoPreview(previewUrl);
     }
   };
 
