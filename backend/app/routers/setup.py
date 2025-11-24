@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr
 from ..database import get_db
 from ..models.user import User
 from ..models.department import Department
-from ..services.auth import hash_password
+from ..utils.security import get_password_hash
 from ..config import get_settings
 
 router = APIRouter(prefix="/setup", tags=["setup"])
@@ -46,7 +46,7 @@ def initialize_database(
         )
     
     # Create super admin user
-    hashed_password = hash_password(request.admin_password)
+    hashed_password = get_password_hash(request.admin_password)
     
     super_admin = User(
         email=request.admin_email,
