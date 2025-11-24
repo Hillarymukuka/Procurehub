@@ -51,10 +51,9 @@ def initialize_database(
     super_admin = User(
         email=request.admin_email,
         hashed_password=hashed_password,
-        role="superadmin",
+        role="SuperAdmin",
         is_active=True,
-        full_name="Super Administrator",
-        department_id=None
+        full_name="Super Administrator"
     )
     
     db.add(super_admin)
