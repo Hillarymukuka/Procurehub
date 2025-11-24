@@ -1872,121 +1872,123 @@ const actions = canCreate ? (
 
       {/* Tabs for RFQs, Suppliers, and Categories */}
       {canCreate && (
-        <div className="mb-6 border-b border-slate-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab("rfqs")}
-              className={clsx(
-                "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors relative",
-                activeTab === "rfqs"
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
-              )}
-            >
-              <ClipboardList
+        <div className="mb-6 -mx-3 sm:mx-0">
+          <div className="border-b border-slate-200 overflow-x-auto">
+            <nav className="-mb-px flex space-x-4 sm:space-x-8 px-3 sm:px-0 min-w-max">
+              <button
+                onClick={() => setActiveTab("rfqs")}
                 className={clsx(
-                  "h-4 w-4 text-slate-500 transition-colors",
-                  activeTab === "rfqs" && "text-secondary"
+                  "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors relative whitespace-nowrap",
+                  activeTab === "rfqs"
+                    ? "border-secondary text-secondary"
+                    : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
                 )}
-              />
-              <span>RFQs</span>
-              {unreadRfqUpdates > 0 && (
-                <span className="absolute top-2 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-                  {unreadRfqUpdates > 99 ? "99+" : unreadRfqUpdates}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("suppliers")}
-              className={clsx(
-                "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors",
-                activeTab === "suppliers"
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
-              )}
-            >
-              <Users
+              >
+                <ClipboardList
+                  className={clsx(
+                    "h-4 w-4 text-slate-500 transition-colors",
+                    activeTab === "rfqs" && "text-secondary"
+                  )}
+                />
+                <span>RFQs</span>
+                {unreadRfqUpdates > 0 && (
+                  <span className="absolute top-2 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                    {unreadRfqUpdates > 99 ? "99+" : unreadRfqUpdates}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab("suppliers")}
                 className={clsx(
-                  "h-4 w-4 text-slate-500 transition-colors",
-                  activeTab === "suppliers" && "text-secondary"
+                  "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors whitespace-nowrap",
+                  activeTab === "suppliers"
+                    ? "border-secondary text-secondary"
+                    : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
                 )}
-              />
-              <span>Suppliers ({suppliersHeaderCount})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("purchaseOrders")}
-              className={clsx(
-                "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors",
-                activeTab === "purchaseOrders"
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
-              )}
-            >
-              <ShoppingCart
+              >
+                <Users
+                  className={clsx(
+                    "h-4 w-4 text-slate-500 transition-colors",
+                    activeTab === "suppliers" && "text-secondary"
+                  )}
+                />
+                <span>Suppliers ({suppliersHeaderCount})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("purchaseOrders")}
                 className={clsx(
-                  "h-4 w-4 text-slate-500 transition-colors",
-                  activeTab === "purchaseOrders" && "text-secondary"
+                  "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors whitespace-nowrap",
+                  activeTab === "purchaseOrders"
+                    ? "border-secondary text-secondary"
+                    : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
                 )}
-              />
-              <span>Purchase Orders ({purchaseOrdersHeaderCount})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("deliveryNotes")}
-              className={clsx(
-                "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors",
-                activeTab === "deliveryNotes"
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
-              )}
-            >
-              <Package
+              >
+                <ShoppingCart
+                  className={clsx(
+                    "h-4 w-4 text-slate-500 transition-colors",
+                    activeTab === "purchaseOrders" && "text-secondary"
+                  )}
+                />
+                <span>Purchase Orders ({purchaseOrdersHeaderCount})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("deliveryNotes")}
                 className={clsx(
-                  "h-4 w-4 text-slate-500 transition-colors",
-                  activeTab === "deliveryNotes" && "text-secondary"
+                  "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors whitespace-nowrap",
+                  activeTab === "deliveryNotes"
+                    ? "border-secondary text-secondary"
+                    : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
                 )}
-              />
-              <span>Delivery Notes ({deliveryNotesHeaderCount})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("categories")}
-              className={clsx(
-                "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors",
-                activeTab === "categories"
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
-              )}
-            >
-              <FolderTree
+              >
+                <Package
+                  className={clsx(
+                    "h-4 w-4 text-slate-500 transition-colors",
+                    activeTab === "deliveryNotes" && "text-secondary"
+                  )}
+                />
+                <span>Delivery Notes ({deliveryNotesHeaderCount})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("categories")}
                 className={clsx(
-                  "h-4 w-4 text-slate-500 transition-colors",
-                  activeTab === "categories" && "text-secondary"
+                  "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors whitespace-nowrap",
+                  activeTab === "categories"
+                    ? "border-secondary text-secondary"
+                    : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800"
                 )}
-              />
-              <span>Categories ({categoriesHeaderCount})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("requests")}
-              className={clsx(
-                "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors relative",
-                activeTab === "requests"
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-primary/60 hover:border-secondary/40 hover:text-secondary"
-              )}
-            >
-              <FileText
+              >
+                <FolderTree
+                  className={clsx(
+                    "h-4 w-4 text-slate-500 transition-colors",
+                    activeTab === "categories" && "text-secondary"
+                  )}
+                />
+                <span>Categories ({categoriesHeaderCount})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("requests")}
                 className={clsx(
-                  "h-4 w-4 text-slate-500 transition-colors",
-                  activeTab === "requests" && "text-secondary"
+                  "group flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-medium transition-colors relative whitespace-nowrap",
+                  activeTab === "requests"
+                    ? "border-secondary text-secondary"
+                    : "border-transparent text-primary/60 hover:border-secondary/40 hover:text-secondary"
                 )}
-              />
-              <span>Requests ({requestsHeaderCount})</span>
-              {unreadRequestUpdates > 0 && (
-                <span className="absolute top-2 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-                  {unreadRequestUpdates > 99 ? "99+" : unreadRequestUpdates}
-                </span>
-              )}
-            </button>
-          </nav>
+              >
+                <FileText
+                  className={clsx(
+                    "h-4 w-4 text-slate-500 transition-colors",
+                    activeTab === "requests" && "text-secondary"
+                  )}
+                />
+                <span>Requests ({requestsHeaderCount})</span>
+                {unreadRequestUpdates > 0 && (
+                  <span className="absolute top-2 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                    {unreadRequestUpdates > 99 ? "99+" : unreadRequestUpdates}
+                  </span>
+                )}
+              </button>
+            </nav>
+          </div>
         </div>
       )}
 
@@ -2348,8 +2350,8 @@ const actions = canCreate ? (
       )}
 
       {activeTab === "purchaseOrders" && (
-        <div className="mt-6 space-y-6">
-          <div className="grid gap-4 md:grid-cols-4">
+        <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
+          <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-4">
             <StatCard label="Total Purchase Orders" value={purchaseOrders.length} helperText="Approved quotations converted to purchase orders." />
             <StatCard label="Suppliers" value={purchaseOrderSupplierCount} helperText="Unique vendors with approved orders." />
             <StatCard label="This Month" value={purchaseOrdersThisMonth} helperText="Purchase orders approved this month." />
@@ -2357,10 +2359,10 @@ const actions = canCreate ? (
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex flex-col gap-3 border-b border-slate-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-b border-slate-200 px-3 sm:px-6 py-3 sm:py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-primary">Purchase Order Log</h2>
-                <p className="text-xs text-slate-500">
+                <h2 className="text-base sm:text-lg font-semibold text-primary">Purchase Order Log</h2>
+                <p className="text-[10px] sm:text-xs text-slate-500">
                   {purchaseOrdersHeaderCount} purchase orders tracked.
                 </p>
               </div>
@@ -2375,64 +2377,110 @@ const actions = canCreate ? (
             {isLoadingPurchaseOrders ? (
               <div className="p-8 text-center text-sm text-slate-600">Loading purchase orders...</div>
             ) : purchaseOrdersToDisplay.length ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">PO Number</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">Supplier</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">RFQ</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">Approved</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 bg-white">
-                    {purchaseOrdersToDisplay.map((order) => {
-                      const approvedLabel = order.approvedAt ? formatDisplay(order.approvedAt, { dateStyle: 'medium' }) : "Pending";
-                      const submittedLabel = order.submittedAt ? formatDisplay(order.submittedAt, { dateStyle: 'medium' }) : "";
-                      return (
-                        <tr key={`${order.id}-${order.poNumber}`} className="hover:bg-slate-50">
-                          <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-primary">{order.poNumber}</td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-slate-800">{order.supplierName}</div>
-                            {order.supplierNumber ? (
-                              <div className="text-xs text-slate-500">{order.supplierNumber}</div>
-                            ) : null}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4">
-                            <div className="text-sm font-semibold text-slate-800">{formatCurrency(order.amount, order.currency)}</div>
-                            <div className="text-xs text-slate-500">{order.currency}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-slate-800">{order.rfqTitle}</div>
-                            {order.rfqNumber ? (
-                              <div className="text-xs font-mono text-slate-500">{order.rfqNumber}</div>
-                            ) : null}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4">
-                            <div className="text-sm text-slate-800">{approvedLabel}</div>
-                            {submittedLabel ? (
-                              <div className="text-xs text-slate-500">Submitted {submittedLabel}</div>
-                            ) : null}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4">
-                            <button
-                              onClick={() => {
-                                setActiveTab("rfqs");
-                                void loadRfqDetails(order.rfqId);
-                              }}
-                              className="inline-flex items-center rounded-lg border border-secondary px-3 py-1.5 text-xs font-semibold text-secondary transition hover:bg-secondary/10"
-                            >
-                              View RFQ
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {/* Mobile Card Layout */}
+                <div className="sm:hidden divide-y divide-slate-200">
+                  {purchaseOrdersToDisplay.map((order) => {
+                    const approvedLabel = order.approvedAt ? formatDisplay(order.approvedAt, { dateStyle: 'medium' }) : "Pending";
+                    const submittedLabel = order.submittedAt ? formatDisplay(order.submittedAt, { dateStyle: 'medium' }) : "";
+                    return (
+                      <div key={`${order.id}-${order.poNumber}`} className="p-3 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold text-primary truncate">{order.poNumber}</div>
+                            <div className="text-xs font-medium text-slate-800 truncate">{order.supplierName}</div>
+                            {order.supplierNumber && (
+                              <div className="text-[10px] text-slate-500 truncate">{order.supplierNumber}</div>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs font-semibold text-slate-800">{formatCurrency(order.amount, order.currency)}</div>
+                            <div className="text-[10px] text-slate-500">{order.currency}</div>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-xs text-slate-800 truncate">{order.rfqTitle}</div>
+                          {order.rfqNumber && (
+                            <div className="text-[10px] font-mono text-slate-500 truncate">{order.rfqNumber}</div>
+                          )}
+                          <div className="text-[10px] text-slate-600">Approved: {approvedLabel}</div>
+                          {submittedLabel && (
+                            <div className="text-[10px] text-slate-500">Submitted: {submittedLabel}</div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setActiveTab("rfqs");
+                            void loadRfqDetails(order.rfqId);
+                          }}
+                          className="w-full inline-flex items-center justify-center rounded-lg border border-secondary px-3 py-1.5 text-xs font-semibold text-secondary transition hover:bg-secondary/10"
+                        >
+                          View RFQ
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Desktop Table Layout */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-200">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">PO Number</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">Supplier</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">RFQ</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">Approved</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-600">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 bg-white">
+                      {purchaseOrdersToDisplay.map((order) => {
+                        const approvedLabel = order.approvedAt ? formatDisplay(order.approvedAt, { dateStyle: 'medium' }) : "Pending";
+                        const submittedLabel = order.submittedAt ? formatDisplay(order.submittedAt, { dateStyle: 'medium' }) : "";
+                        return (
+                          <tr key={`${order.id}-${order.poNumber}`} className="hover:bg-slate-50">
+                            <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-primary">{order.poNumber}</td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-medium text-slate-800">{order.supplierName}</div>
+                              {order.supplierNumber ? (
+                                <div className="text-xs text-slate-500">{order.supplierNumber}</div>
+                              ) : null}
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4">
+                              <div className="text-sm font-semibold text-slate-800">{formatCurrency(order.amount, order.currency)}</div>
+                              <div className="text-xs text-slate-500">{order.currency}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-slate-800">{order.rfqTitle}</div>
+                              {order.rfqNumber ? (
+                                <div className="text-xs font-mono text-slate-500">{order.rfqNumber}</div>
+                              ) : null}
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4">
+                              <div className="text-sm text-slate-800">{approvedLabel}</div>
+                              {submittedLabel ? (
+                                <div className="text-xs text-slate-500">Submitted {submittedLabel}</div>
+                              ) : null}
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4">
+                              <button
+                                onClick={() => {
+                                  setActiveTab("rfqs");
+                                  void loadRfqDetails(order.rfqId);
+                                }}
+                                className="inline-flex items-center rounded-lg border border-secondary px-3 py-1.5 text-xs font-semibold text-secondary transition hover:bg-secondary/10"
+                              >
+                                View RFQ
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="p-8 text-center text-sm text-slate-600">
                 {searchScope === "purchaseOrders" && normalizedSearch.length > 0
@@ -2446,9 +2494,69 @@ const actions = canCreate ? (
 
       {/* Suppliers Tab */}
       {activeTab === "suppliers" && canCreate && (
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="overflow-x-auto">
+            {/* Mobile Card Layout */}
+            <div className="sm:hidden">
+              {suppliersToDisplay.length > 0 ? (
+                <div className="divide-y divide-slate-200">
+                  {suppliersToDisplay.map((supplier) => (
+                    <div key={supplier.id} className="p-3 space-y-2" onClick={() => openSupplierProfile(supplier)}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-slate-900 truncate">{supplier.company_name}</div>
+                          <div className="text-[10px] font-mono text-slate-700 truncate">{supplier.supplier_number}</div>
+                          {supplier.address && (
+                            <div className="text-[10px] text-slate-500 truncate">{supplier.address}</div>
+                          )}
+                        </div>
+                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold whitespace-nowrap ${
+                          supplier.user_active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}>
+                          {supplier.user_active ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-xs text-slate-700 truncate">{supplier.user_email}</div>
+                        <div className="text-xs text-slate-700">{supplier.contact_phone || "-"}</div>
+                        <div className="text-xs text-slate-700">{supplier.preferred_currency}</div>
+                      </div>
+                      {supplier.categories && supplier.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {supplier.categories.map((category) => (
+                            <span
+                              key={`${category.id}-${category.category_type}`}
+                              className="inline-flex items-center rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-medium text-secondary"
+                            >
+                              {category.category_type === "primary" ? "Primary" : "Secondary"}{" · "}{category.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openMessageModal(supplier);
+                        }}
+                        className="w-full rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                      >
+                        Send Message
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-6 py-8 text-center text-sm text-slate-600">
+                  {searchScope === "suppliers" && normalizedSearch.length > 0
+                    ? "No suppliers match your search."
+                    : "No suppliers yet. Click \"Add Supplier\" to get started."}
+                </div>
+              )}
+            </div>
+            {/* Desktop Table Layout */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
                   <tr>
@@ -2565,9 +2673,47 @@ const actions = canCreate ? (
       {/* Categories Tab */}
       {activeTab === "categories" && (
         <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="p-6">
-            <h2 className="mb-4 text-lg font-semibold text-primary">Procurement Categories</h2>
-            <div className="overflow-x-auto">
+          <div className="p-3 sm:p-6">
+            <h2 className="mb-3 sm:mb-4 text-base sm:text-lg font-semibold text-primary">Procurement Categories</h2>
+            {/* Mobile Card Layout */}
+            <div className="sm:hidden">
+              {categoriesToDisplay.length > 0 ? (
+                <div className="space-y-3">
+                  {categoriesToDisplay.map((category) => (
+                    <div
+                      key={category.id}
+                      className="rounded-lg border border-slate-200 p-3 hover:bg-slate-50 cursor-pointer"
+                      onClick={() => loadCategoryDetails(category.id)}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="text-sm font-medium text-slate-900 truncate flex-1">{category.name}</div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCategory(category.id);
+                          }}
+                          className="text-xs font-medium text-red-600 hover:text-red-900 whitespace-nowrap"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                      <div className="text-xs text-slate-700 mb-1 line-clamp-2">{category.description || "-"}</div>
+                      <div className="text-[10px] text-slate-500">
+                        Created: {category.created_at ? new Date(category.created_at).toLocaleDateString() : "-"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-3 py-8 text-center text-sm text-slate-600">
+                  {searchScope === "categories" && normalizedSearch.length > 0
+                    ? "No categories match your search."
+                    : "No categories yet. Click \"Add Category\" to get started."}
+                </div>
+              )}
+            </div>
+            {/* Desktop Table Layout */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
                   <tr>
@@ -4473,11 +4619,11 @@ const actions = canCreate ? (
 
       {/* Delivery Notes Tab */}
       {activeTab === "deliveryNotes" && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-primary">Delivery Notes</h2>
-              <p className="mt-1 text-sm text-slate-600">
+              <h2 className="text-lg sm:text-2xl font-bold text-primary">Delivery Notes</h2>
+              <p className="mt-1 text-xs sm:text-sm text-slate-600">
                 All delivered contracts with uploaded delivery notes
               </p>
             </div>
@@ -4488,49 +4634,49 @@ const actions = canCreate ? (
               <div className="text-slate-600">Loading delivered contracts...</div>
             </div>
           ) : deliveredContractsToDisplay.length > 0 ? (
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               {deliveredContractsToDisplay.map((contract) => (
                 <div
                   key={contract.id}
-                  className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+                  className="rounded-lg border border-slate-200 bg-white p-3 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="rounded-full px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 uppercase">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 w-full">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="rounded-full px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-semibold bg-blue-100 text-blue-700 uppercase">
                           ✓ Delivered
                         </span>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-[10px] sm:text-xs text-slate-500">
                           {contract.delivered_at && new Date(contract.delivered_at).toLocaleDateString()}
                         </span>
                       </div>
                       
-                      <h3 className="text-lg font-semibold text-primary">
+                      <h3 className="text-sm sm:text-lg font-semibold text-primary truncate">
                         {(contract as any).rfq_title || "Contract"}
                       </h3>
                       
-                      <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
                         <div>
                           <span className="text-slate-600">RFQ Number:</span>
-                          <span className="ml-2 font-medium text-slate-900">
+                          <span className="ml-2 font-medium text-slate-900 truncate">
                             {(contract as any).rfq_number || "-"}
                           </span>
                         </div>
                         <div>
                           <span className="text-slate-600">Category:</span>
-                          <span className="ml-2 font-medium text-slate-900">
+                          <span className="ml-2 font-medium text-slate-900 truncate">
                             {(contract as any).rfq_category || "-"}
                           </span>
                         </div>
-                        <div>
+                        <div className="col-span-1 sm:col-span-2">
                           <span className="text-slate-600">Supplier:</span>
-                          <span className="ml-2 font-medium text-slate-900">
+                          <span className="ml-2 font-medium text-slate-900 truncate">
                             {contract.supplier_name || `Supplier #${contract.supplier_id}`}
                           </span>
                         </div>
                         <div>
                           <span className="text-slate-600">Supplier Number:</span>
-                          <span className="ml-2 font-medium text-slate-900">
+                          <span className="ml-2 font-medium text-slate-900 truncate">
                             {contract.supplier_number || "-"}
                           </span>
                         </div>
@@ -4552,32 +4698,32 @@ const actions = canCreate ? (
                             {contract.delivered_at ? new Date(contract.delivered_at).toLocaleDateString() : "-"}
                           </span>
                         </div>
-                        <div>
+                        <div className="col-span-1 sm:col-span-2">
                           <span className="text-slate-600">Delivery Note:</span>
-                          <span className="ml-2 font-medium text-slate-900">
+                          <span className="ml-2 font-medium text-slate-900 truncate">
                             {contract.delivery_note_filename || "No file"}
                           </span>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row">
                       {contract.delivery_note_path && (
                         <button
                           onClick={() => handleDownloadDeliveryNote(contract.rfq_id, contract.id, contract.delivery_note_filename)}
-                          className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 whitespace-nowrap"
+                          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg bg-blue-500 px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-white hover:bg-blue-600"
                         >
-                          <Package className="h-4 w-4" />
-                          Download Note
+                          <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span>Download Note</span>
                         </button>
                       )}
                       {contract.document_path && (
                         <button
                           onClick={() => handleDownloadQuotation(contract.rfq_id, contract.id, contract.original_filename)}
-                          className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap"
+                          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg border border-slate-300 px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-slate-700 hover:bg-slate-50"
                         >
-                          <FileText className="h-4 w-4" />
-                          Quotation
+                          <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span>Quotation</span>
                         </button>
                       )}
                     </div>

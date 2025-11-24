@@ -647,11 +647,11 @@ const HelpChatbot: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-secondary via-secondary to-primary shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_60px_-15px_rgba(16,125,172,0.6)]"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-to-br from-secondary via-secondary to-primary shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-[0_20px_60px_-15px_rgba(16,125,172,0.6)]"
           aria-label="Open Help"
         >
           <div className="relative">
-            <MessageCircle className="h-7 w-7 text-white" strokeWidth={2.5} />
+            <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white" strokeWidth={2.5} />
             <div className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-white opacity-75"></div>
             <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-white"></div>
           </div>
@@ -660,16 +660,16 @@ const HelpChatbot: React.FC = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex h-[600px] w-[420px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 flex h-[100vh] w-full sm:h-[600px] sm:w-[420px] sm:max-w-[420px] flex-col overflow-hidden sm:rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
           {/* Header */}
-          <div className="flex items-center justify-between bg-gradient-to-r from-primary via-slate-900 to-secondary px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                <HelpCircle className="h-5 w-5 text-white" />
+          <div className="flex items-center justify-between bg-gradient-to-r from-primary via-slate-900 to-secondary px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <HelpCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Nestro AI</h3>
-                <p className="text-xs text-white/80">Your ProcuraHub Assistant</p>
+                <h3 className="text-base sm:text-lg font-bold text-white">Nestro AI</h3>
+                <p className="text-[10px] sm:text-xs text-white/80">Your ProcuraHub Assistant</p>
               </div>
             </div>
             <button

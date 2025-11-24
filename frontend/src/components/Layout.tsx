@@ -27,20 +27,20 @@ const Layout: React.FC<LayoutProps> = ({ title, subtitle, actions, children }) =
   return (
     <div className="min-h-screen bg-sand">
       <header className="border-b border-primary/60 bg-gradient-to-l from-primary via-primary to-secondary">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-7">
-          <div>
-            <h1 className="text-2xl font-semibold text-sand">{title}</h1>
-            {subtitle ? <p className="text-sm text-sand/70">{subtitle}</p> : null}
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-4 sm:px-6 sm:py-7">
+          <div className="min-w-0 flex-1 pr-2">
+            <h1 className="truncate text-lg font-semibold text-sand sm:text-xl lg:text-2xl">{title}</h1>
+            {subtitle ? <p className="truncate text-xs text-sand/70 sm:text-sm">{subtitle}</p> : null}
           </div>
-          <div className="flex items-center gap-4 text-sand/80">
-            {actions ? <div className="flex items-center gap-2 text-sand/80">{actions}</div> : null}
+          <div className="flex items-center gap-1.5 text-sand/80 sm:gap-3 lg:gap-4">
+            {actions ? <div className="hidden items-center gap-2 text-sand/80 sm:flex">{actions}</div> : null}
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-sand">{user?.full_name}</p>
-              <p className="text-xs uppercase tracking-wide text-sand/70">{getRoleDisplay()}</p>
+              <p className="text-xs font-medium text-sand sm:text-sm">{user?.full_name}</p>
+              <p className="text-[10px] uppercase tracking-wide text-sand/70 sm:text-xs">{getRoleDisplay()}</p>
             </div>
             <button
               onClick={logout}
-              className="rounded-lg border border-secondary bg-sand px-4 py-2 text-sm font-semibold text-primary transition hover:bg-secondary hover:text-sand"
+              className="rounded-lg border border-secondary bg-sand px-2.5 py-1.5 text-xs font-semibold text-primary transition hover:bg-secondary hover:text-sand sm:px-4 sm:py-2 sm:text-sm"
             >
               Logout
             </button>
@@ -48,17 +48,17 @@ const Layout: React.FC<LayoutProps> = ({ title, subtitle, actions, children }) =
               <button
                 type="button"
                 onClick={() => setIsSettingsOpen(true)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-secondary bg-sand text-primary transition hover:bg-secondary hover:text-sand focus:outline-none focus:ring-2 focus:ring-secondary/40"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-secondary bg-sand text-primary transition hover:bg-secondary hover:text-sand focus:outline-none focus:ring-2 focus:ring-secondary/40 sm:h-10 sm:w-10"
                 title="Settings"
                 aria-label="Settings"
               >
-                <Settings className="h-5 w-5" />
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             )}
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-3 py-4 sm:px-6 sm:py-8">{children}</main>
       <Modal open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="User Settings">
         <div className="space-y-4">
           <TimezoneSettings />

@@ -140,9 +140,9 @@ const HODDashboard: React.FC = () => {
 
   return (
     <Layout title="Head of Department Dashboard" subtitle={user?.department_name}>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Statistics */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-3 sm:gap-6 grid-cols-3 md:grid-cols-3">
           <StatCard
             label="Pending Approval"
             value={pendingRequests.length}
@@ -159,69 +159,70 @@ const HODDashboard: React.FC = () => {
 
         {/* Pending Requests */}
         <div className="rounded-lg border border-primary/20 bg-white shadow-sm">
-          <div className="border-b border-primary/20 bg-primary/5 px-6 py-4">
-            <h2 className="text-lg font-semibold text-primary">Pending Approval</h2>
+          <div className="border-b border-primary/20 bg-primary/5 px-3 py-3 sm:px-6 sm:py-4">
+            <h2 className="text-base sm:text-lg font-semibold text-primary">Pending Approval</h2>
           </div>
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             {pendingRequests.length === 0 ? (
-              <p className="text-center text-gray-500">No pending requests</p>
+              <p className="text-center text-sm text-gray-500">No pending requests</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {pendingRequests.map((request) => (
                   <div
                     key={request.id}
-                    className="rounded-lg border border-gray-200 bg-gray-50 p-4 hover:shadow-md transition-shadow"
+                    className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4 hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <Package className="h-5 w-5 text-primary" />
-                          <h3 className="font-semibold text-gray-900">{request.title}</h3>
+                          <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{request.title}</h3>
                         </div>
-                        <p className="mt-1 text-sm text-gray-600">{request.description}</p>
-                        <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-500">
-                          <span>
+                        <p className="mt-1 text-xs sm:text-sm text-gray-600 line-clamp-2">{request.description}</p>
+                        <div className="mt-2 flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-4 text-xs sm:text-sm text-gray-500">
+                          <span className="truncate">
                             <strong>Requester:</strong> {request.requester_name}
                           </span>
-                          <span>
+                          <span className="truncate">
                             <strong>Department:</strong> {request.department_name}
                           </span>
-                          <span>
+                          <span className="truncate">
                             <strong>Category:</strong> {request.category}
                           </span>
                           {request.proposed_budget_amount && (
-                            <span>
+                            <span className="truncate">
                               <strong>Budget:</strong> {formatCurrency(request.proposed_budget_amount, request.proposed_budget_currency || 'USD')}
                             </span>
                           )}
-                          <span>
+                          <span className="truncate">
                             <strong>Created:</strong> {formatDisplay(request.created_at)}
                           </span>
                         </div>
                         {request.documents && request.documents.length > 0 && (
                           <button
                             onClick={() => downloadDocument(request.id)}
-                            className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                            className="mt-2 inline-flex items-center gap-1 text-xs sm:text-sm text-primary hover:underline"
                           >
-                            <FileText className="h-4 w-4" />
-                            Download Document
+                            <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">Download Document</span>
+                            <span className="sm:hidden">Document</span>
                           </button>
                         )}
                       </div>
-                      <div className="flex gap-2 ml-4">
+                      <div className="flex flex-col sm:flex-row gap-2 shrink-0">
                         <button
                           onClick={() => handleOpenModal(request, "approve")}
-                          className="flex items-center gap-1 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition"
+                          className="flex items-center justify-center gap-1 rounded-lg bg-green-600 px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white hover:bg-green-700 transition whitespace-nowrap"
                         >
-                          <CheckCircle2 className="h-4 w-4" />
-                          Approve
+                          <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Approve</span>
                         </button>
                         <button
                           onClick={() => handleOpenModal(request, "reject")}
-                          className="flex items-center gap-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition"
+                          className="flex items-center justify-center gap-1 rounded-lg bg-red-600 px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white hover:bg-red-700 transition whitespace-nowrap"
                         >
-                          <XCircle className="h-4 w-4" />
-                          Reject
+                          <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Reject</span>
                         </button>
                       </div>
                     </div>
@@ -235,49 +236,49 @@ const HODDashboard: React.FC = () => {
         {/* Approved Requests */}
         {approvedRequests.length > 0 && (
           <div className="rounded-lg border border-primary/20 bg-white shadow-sm">
-            <div className="border-b border-primary/20 bg-green-50 px-6 py-4">
-              <h2 className="text-lg font-semibold text-green-700">Approved Requests</h2>
+            <div className="border-b border-primary/20 bg-green-50 px-3 py-3 sm:px-6 sm:py-4">
+              <h2 className="text-base sm:text-lg font-semibold text-green-700">Approved Requests</h2>
             </div>
-            <div className="p-6">
-              <div className="space-y-3">
+            <div className="p-3 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
                 {approvedRequests.map((request) => (
                   <div
                     key={request.id}
                     className="rounded-lg border border-green-200 bg-green-50 p-3"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{request.title}</h3>
-                        <p className="text-sm text-gray-600">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{request.title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">
                           Requester: {request.requester_name} • Approved: {formatDisplay(request.hod_reviewed_at!)}
                         </p>
                         {request.hod_notes && (
-                          <p className="mt-1 text-sm text-gray-500">
+                          <p className="mt-1 text-xs sm:text-sm text-gray-500 line-clamp-2">
                             <strong>Your Notes:</strong> {request.hod_notes}
                           </p>
                         )}
                         {request.status === "rejected_by_procurement" && request.procurement_rejection_reason && (
-                          <p className="mt-1 text-sm text-red-600">
+                          <p className="mt-1 text-xs sm:text-sm text-red-600 line-clamp-2">
                             <strong>Rejected by Procurement:</strong> {request.procurement_rejection_reason}
                           </p>
                         )}
                         {request.status === "rejected_by_procurement" && request.procurement_notes && (
-                          <p className="mt-1 text-sm text-red-600">
+                          <p className="mt-1 text-xs sm:text-sm text-red-600 line-clamp-2">
                             <strong>Procurement Notes:</strong> {request.procurement_notes}
                           </p>
                         )}
                         {request.status !== "rejected_by_procurement" && request.procurement_notes && (
-                          <p className="mt-1 text-sm text-gray-500">
+                          <p className="mt-1 text-xs sm:text-sm text-gray-500 line-clamp-2">
                             <strong>Procurement Review:</strong> {request.procurement_notes}
                           </p>
                         )}
                         {request.rfq_number && (
-                          <p className="mt-1 text-sm text-blue-600">
+                          <p className="mt-1 text-xs sm:text-sm text-blue-600 truncate">
                             <strong>RFQ:</strong> {request.rfq_number} - {request.rfq_title}
                           </p>
                         )}
                       </div>
-                      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                      <span className="rounded-full bg-green-100 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-green-700 shrink-0 ml-2">
                         {request.status.replace(/_/g, " ").toUpperCase()}
                       </span>
                     </div>
@@ -291,31 +292,31 @@ const HODDashboard: React.FC = () => {
         {/* Rejected Requests */}
         {rejectedRequests.length > 0 && (
           <div className="rounded-lg border border-primary/20 bg-white shadow-sm">
-            <div className="border-b border-primary/20 bg-red-50 px-6 py-4">
-              <h2 className="text-lg font-semibold text-red-700">Rejected Requests</h2>
+            <div className="border-b border-primary/20 bg-red-50 px-3 py-3 sm:px-6 sm:py-4">
+              <h2 className="text-base sm:text-lg font-semibold text-red-700">Rejected Requests</h2>
             </div>
-            <div className="p-6">
-              <div className="space-y-3">
+            <div className="p-3 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
                 {rejectedRequests.map((request) => (
                   <div
                     key={request.id}
                     className="rounded-lg border border-red-200 bg-red-50 p-3"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{request.title}</h3>
-                        <p className="text-sm text-gray-600">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{request.title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">
                           {request.requester_name}
                           {request.proposed_budget_amount && ` • ${formatCurrency(request.proposed_budget_amount, request.proposed_budget_currency || 'USD')}`} • 
                           Rejected: {formatDisplay(request.hod_reviewed_at!)}
                         </p>
                         {request.hod_rejection_reason && (
-                          <p className="mt-1 text-sm text-red-600">
+                          <p className="mt-1 text-xs sm:text-sm text-red-600 line-clamp-2">
                             <strong>Reason:</strong> {request.hod_rejection_reason}
                           </p>
                         )}
                       </div>
-                      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                      <span className="rounded-full bg-red-100 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-red-700 shrink-0 ml-2">
                         REJECTED
                       </span>
                     </div>
