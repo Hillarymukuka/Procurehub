@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: procurehub-backend
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: procurehub-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+        sync: false
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 60
+      - key: CORS_ALLOW_ORIGINS
+        value: https://your-app.pages.dev
+      - key: EMAIL_SENDER
+        value: noreply@procurahub.com
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: INVITATION_BATCH_SIZE
+        value: 25
+    healthCheckPath: /health
+
+databases:
+  - name: procurehub-db
+    databaseName: procurehub
+    region: oregon
+    plan: free

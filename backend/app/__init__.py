@@ -1,0 +1,2 @@
+"""ProcuraHub backend application package."""
+

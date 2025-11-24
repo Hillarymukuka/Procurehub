@@ -1,0 +1,110 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables (CRITICAL - Contains secrets)
+.env
+.env.*
+!.env.example
+
+# Database (Contains sensitive user data)
+*.db
+*.sqlite
+*.sqlite3
+backend/procurahub.db
+
+# Uploads & sensitive data
+uploads/
+/backend/uploads/
+/frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Secrets & certificates
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+credentials/
+
+# Test & temporary files
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.tmp
+*.temp
+test_*.py
+debug_*.py
+check_*.py
+tmp_*.py
+temp_*.py
+
+# Node modules
+node_modules/
+/frontend/node_modules/
+
+# Build outputs
+/frontend/build/
+/frontend/.vite/
+
+# Package manager files
+package-lock.json
+
+# Local configuration
+local_settings.py
+.env.local
+.env.production.local
+.env.development.local
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Development docs (keep only essential)
+*_FIX.md
+*_FEATURE.md
+*_UPDATE.md
+*_STATUS.md
+DEBUG_*.md
+ISSUES_*.md
+
+# Scripts and shortcuts
+*.bat
+*.cmd
+*.lnk
+*.ps1
+!deploy.sh
+
+# SQLite databases
+*.db-journal
+*.db-wal
+*.db-shm
