@@ -82,34 +82,6 @@ def create_app() -> FastAPI:
 
     Base.metadata.create_all(bind=engine)
     run_startup_migrations(engine)
-    
-    # Auto-initialize admin account for testing (SQLite ephemeral storage)
-    if settings.environment == "production":
-        from .database import SessionLocal
-        from .models.user import User
-        from .utils.security import get_password_hash
-        
-        db = SessionLocal()
-        try:
-            # Check if admin exists
-            admin_exists = db.query(User).filter(User.role == "SuperAdmin").first()
-            if not admin_exists:
-                # Auto-create default admin for testing
-                admin = User(
-                    email="hillarymukuka@gmail.com",
-                    hashed_password=get_password_hash("12makumba!"),
-                    role="SuperAdmin",
-                    is_active=True,
-                    full_name="Super Administrator"
-                )
-                db.add(admin)
-                db.commit()
-                logger.info("Auto-created super admin account for testing")
-        except Exception as e:
-            logger.error(f"Failed to auto-create admin: {e}")
-            db.rollback()
-        finally:
-            db.close()
 
     upload_dir = settings.resolved_upload_dir
     upload_dir.mkdir(parents=True, exist_ok=True)
