@@ -41,11 +41,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (token) {
       setAuthToken(token);
-      // Attempt to restore user session
+      // Attempt to restore user session with timeout handling
       apiClient
         .get<AuthUser>("/api/auth/me")
         .then((response) => setUser(response.data))
-        .catch(() => {
+        .catch((error) => {
+          // Handle timeout or connection errors gracefully
+          console.error("Failed to restore session:", error.message);
           // Don't navigate here, just clear state
           localStorage.removeItem("procurahub.token");
           setTokenState(null);

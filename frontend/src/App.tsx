@@ -8,11 +8,32 @@ import CompanySettingsPage from "./pages/CompanySettingsPage";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
+  const [showSlowMessage, setShowSlowMessage] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isLoading) {
+      // Show message if loading takes more than 3 seconds
+      const timer = setTimeout(() => setShowSlowMessage(true), 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowSlowMessage(false);
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-screen flex-col items-center justify-center bg-slate-50 gap-4">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        {showSlowMessage && (
+          <div className="text-center px-4">
+            <p className="text-sm text-slate-600">
+              Server is waking up, this may take up to a minute...
+            </p>
+            <p className="text-xs text-slate-500 mt-2">
+              (Free tier backend is starting from sleep mode)
+            </p>
+          </div>
+        )}
       </div>
     );
   }
