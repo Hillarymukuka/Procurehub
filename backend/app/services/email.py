@@ -57,17 +57,19 @@ class EmailService:
             try:
                 self._send_smtp(recipients, subject, body, html_body)
                 logger.info(
-                    "Email sent successfully to %s (subject=%s)", 
+                    "✓ Email sent successfully to %s (subject=%s)", 
                     ", ".join(recipients), 
                     subject
                 )
             except Exception as e:
-                logger.error(
-                    "Failed to send email to %s: %s", 
+                # Log error but don't raise - emails are non-critical
+                logger.warning(
+                    "✗ Failed to send email to %s (subject=%s): %s. Email will not be delivered.", 
                     ", ".join(recipients), 
+                    subject,
                     str(e)
                 )
-                raise
+                # Don't raise - background tasks should not crash the app
     
     def _send_smtp(
         self, 
@@ -95,12 +97,30 @@ class EmailService:
             part2 = MIMEText(html_body, 'html', 'utf-8')
             msg.attach(part2)
         
-        # Send email
-        with smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port) as server:
-            if self.settings.smtp_use_tls:
-                server.starttls()
-            server.login(self.settings.smtp_username, self.settings.smtp_password)
-            server.sendmail(self.settings.email_sender, recipients, msg.as_string())
+        # Send email using SSL or TLS
+        try:
+            if self.settings.smtp_use_ssl:
+                # Use SSL (port 465)
+                with smtplib.SMTP_SSL(self.settings.smtp_host, self.settings.smtp_port) as server:
+                    server.login(self.settings.smtp_username, self.settings.smtp_password)
+                    server.sendmail(self.settings.email_sender, recipients, msg.as_string())
+            else:
+                # Use STARTTLS (port 587)
+                with smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port) as server:
+                    if self.settings.smtp_use_tls:
+                        server.starttls()
+                    server.login(self.settings.smtp_username, self.settings.smtp_password)
+                    server.sendmail(self.settings.email_sender, recipients, msg.as_string())
+        except Exception as e:
+            logger.error(
+                "SMTP connection failed (host=%s, port=%s, ssl=%s, tls=%s): %s",
+                self.settings.smtp_host,
+                self.settings.smtp_port,
+                self.settings.smtp_use_ssl,
+                self.settings.smtp_use_tls,
+                str(e)
+            )
+            raise
 
 
 email_service = EmailService(get_settings())
