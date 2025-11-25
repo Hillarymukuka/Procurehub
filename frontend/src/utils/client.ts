@@ -9,7 +9,7 @@ const computedBaseUrl = import.meta.env.DEV
 export const apiClient = axios.create({
   baseURL: computedBaseUrl,
   withCredentials: false,
-  timeout: 15000, // 15 second timeout to prevent hanging on slow backend
+  timeout: 30000, // 30 second timeout for Render cold starts
 });
 
 // Add request interceptor to always include the auth token

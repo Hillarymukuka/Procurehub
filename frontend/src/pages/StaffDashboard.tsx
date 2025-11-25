@@ -462,7 +462,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
     }
   };
 
-  const loadRequests = async () => {
+  const loadRequests = async (retryCount = 0) => {
     if (!canCreate) return; // Only load for Procurement/SuperAdmin
     try {
       const { data } = await apiClient.get<PurchaseRequest[]>("/api/requests/");
@@ -478,7 +478,12 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       } else {
         setSelectedRequest(null);
       }
-    } catch (err) {
+    } catch (err: any) {
+      // If timeout and first attempt, retry once (likely cold start)
+      if (err.code === 'ECONNABORTED' && retryCount === 0) {
+        console.log("Server cold start detected, retrying...");
+        return loadRequests(1);
+      }
       console.error("Failed to load purchase requests:", err);
     }
   };

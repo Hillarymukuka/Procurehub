@@ -87,12 +87,17 @@ const FinanceDashboard: React.FC = () => {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [financeForm, setFinanceForm] = useState<FinanceReviewFormState>({ ...emptyFinanceForm });
 
-  const loadRequests = async () => {
+  const loadRequests = async (retryCount = 0) => {
     setIsLoadingRequests(true);
     try {
       const { data } = await apiClient.get<PurchaseRequest[]>("/api/requests/");
       setRequests(data);
-    } catch (err) {
+    } catch (err: any) {
+      // If timeout and first attempt, retry once (likely cold start)
+      if (err.code === 'ECONNABORTED' && retryCount === 0) {
+        console.log("Server cold start detected, retrying...");
+        return loadRequests(1);
+      }
       console.error("Failed to load purchase requests:", err);
       setError(parseErrorMessage(err) || "Unable to load purchase requests at the moment.");
     } finally {
