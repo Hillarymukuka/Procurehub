@@ -419,6 +419,10 @@ async def create_supplier_by_procurement(
 
     # Send welcome email in background
     from ..services.email import email_service
+    from ..config import get_settings
+    settings = get_settings()
+    app_url = "https://procurehub.pages.dev" if settings.environment == "production" else "http://localhost:5173"
+    
     background_tasks.add_task(
         email_service.send_email,
         [contact_email],
@@ -428,7 +432,7 @@ async def create_supplier_by_procurement(
             "Your supplier account has been created. You can now login and "
             "receive invitations for relevant RFQs.\n\n"
             f"Email: {contact_email}\n"
-            "Visit: http://localhost:5173\n\n"
+            f"Visit: {app_url}\n\n"
             "Best regards,\nProcuraHub Team"
         ),
     )

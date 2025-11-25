@@ -50,12 +50,13 @@ interface FinanceReviewFormState {
   rejection_reason: string;
 }
 const getDownloadUrl = (documentPath: string) => {
+  const apiBase = import.meta.env.VITE_API_BASE_URL || '';
   const uploadIndex = documentPath.lastIndexOf("uploads");
   if (uploadIndex !== -1) {
     const relativePath = documentPath.substring(uploadIndex + 7).replace(/^[\\/]+/, "");
-    return `http://localhost:8000/uploads/${relativePath}`;
+    return `${apiBase}/uploads/${relativePath}`;
   }
-  return `http://localhost:8000/uploads/${documentPath}`;
+  return `${apiBase}/uploads/${documentPath}`;
 };
 
 

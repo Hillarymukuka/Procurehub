@@ -4,6 +4,14 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
+from ..config import get_settings
+
+
+def _get_app_url() -> str:
+    """Get the application URL based on environment."""
+    settings = get_settings()
+    return "https://procurehub.pages.dev" if settings.environment == "production" else "http://localhost:5173"
+
 
 def get_base_template(content: str, title: str = "ProcuraHub Notification") -> str:
     """Base HTML email template with modern styling."""

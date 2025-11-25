@@ -1018,15 +1018,16 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
   };
 
   const getDownloadUrl = (documentPath: string) => {
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '';
     // If path contains 'uploads' (old absolute paths), extract relative part
     const uploadIndex = documentPath.lastIndexOf('uploads');
     if (uploadIndex !== -1) {
       const relativePath = documentPath.substring(uploadIndex + 7).replace(/^[\/\\]+/, '');
-      return `http://localhost:8000/uploads/${relativePath}`;
+      return `${apiBase}/uploads/${relativePath}`;
     }
     
     // For new relative paths, just prepend the uploads base URL
-    return `http://localhost:8000/uploads/${documentPath}`;
+    return `${apiBase}/uploads/${documentPath}`;
   };
 
   const isImageDocument = (document: RequestDocument) => {
