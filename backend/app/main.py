@@ -79,6 +79,10 @@ def create_app() -> FastAPI:
         allow_headers=["*"],  # Allow all headers for form submissions
         expose_headers=["Content-Disposition"],
     )
+    
+    # Log CORS configuration for debugging
+    logger.info(f"CORS configured with origins: {settings.resolved_cors_origins}")
+    logger.info(f"CORS raw config: {settings.cors_allow_origins}")
 
     Base.metadata.create_all(bind=engine)
     run_startup_migrations(engine)
