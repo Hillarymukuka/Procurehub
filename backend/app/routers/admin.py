@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 
@@ -288,6 +288,7 @@ def list_suppliers(
 
 @router.post("/suppliers", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def create_supplier_by_procurement(
+    background_tasks: BackgroundTasks,
     company_name: str = Form(...),
     contact_email: str = Form(...),
     full_name: str = Form(...),
@@ -416,12 +417,13 @@ async def create_supplier_by_procurement(
     db.commit()
     db.refresh(profile)
 
-    # Send welcome email
+    # Send welcome email in background
     from ..services.email import email_service
-    email_service.send_email(
+    background_tasks.add_task(
+        email_service.send_email,
         [contact_email],
-        subject="Welcome to ProcuraHub",
-        body=(
+        "Welcome to ProcuraHub",
+        (
             f"Hello {company_name},\n\n"
             "Your supplier account has been created. You can now login and "
             "receive invitations for relevant RFQs.\n\n"

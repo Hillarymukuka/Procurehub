@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import List, Optional, cast
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -220,6 +220,7 @@ def list_departments(
 def create_request(
     request: Request,
     request_in: RequestCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.requester, UserRole.superadmin)),
 ):
@@ -266,11 +267,13 @@ def create_request(
         f"Best regards,\nProcuraHub Team"
     )
     
-    email_service.send_email(
+    # Send email in background to avoid blocking the response
+    background_tasks.add_task(
+        email_service.send_email,
         [requester_email],
-        subject=f"Request Submitted - {request_in.title}",
-        body=plain_body,
-        html_body=html_body,
+        f"Request Submitted - {request_in.title}",
+        plain_body,
+        html_body,
     )
     
     # Notify Head of Department for the selected department
@@ -294,11 +297,13 @@ def create_request(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
+            # Send HOD notification in background
+            background_tasks.add_task(
+                email_service.send_email,
                 [hod_email],
-                subject=f"New Request for Review - {request_in.title}",
-                body=plain_body_hod,
-                html_body=None,
+                f"New Request for Review - {request_in.title}",
+                plain_body_hod,
+                None,
             )
     
     return _build_request_response(request_obj)
@@ -424,6 +429,7 @@ def update_request(
 def hod_approve_request(
     request_id: int,
     approval_in: RequestHODReview,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.head_of_department, UserRole.superadmin)),
 ):
@@ -490,11 +496,13 @@ def hod_approve_request(
                 plain_body += f"Notes: {approval_in.hod_notes}\n\n"
             plain_body += "Best regards,\nProcuraHub Team"
             
-            email_service.send_email(
+            # Send requester notification in background
+            background_tasks.add_task(
+                email_service.send_email,
                 [requester_email],
-                subject=f"HOD Approved - {getattr(request_obj, 'title')}",
-                body=plain_body,
-                html_body=None,
+                f"HOD Approved - {getattr(request_obj, 'title')}",
+                plain_body,
+                None,
             )
         
         # Notify procurement team
@@ -518,11 +526,13 @@ def hod_approve_request(
                 plain_body_proc += f"HOD Notes: {approval_in.hod_notes}\n"
             plain_body_proc += "\nPlease log in to review and process this request.\n\nBest regards,\nProcuraHub Team"
             
-            email_service.send_email(
+            # Send procurement notification in background
+            background_tasks.add_task(
+                email_service.send_email,
                 [proc_email],
-                subject=f"New Request for Review - {getattr(request_obj, 'title')}",
-                body=plain_body_proc,
-                html_body=None,
+                f"New Request for Review - {getattr(request_obj, 'title')}",
+                plain_body_proc,
+                None,
             )
         
         return _build_request_response(request_obj)

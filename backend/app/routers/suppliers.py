@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -158,6 +158,7 @@ def _store_supplier_document(
 @limiter.limit("3/hour")  # Rate limit supplier registration to prevent abuse
 async def register_supplier(
     request: Request,
+    background_tasks: BackgroundTasks,
     company_name: str = Form(...),
     full_name: str = Form(...),
     email: str = Form(...),
@@ -215,10 +216,12 @@ async def register_supplier(
     _store_supplier_document(db, getattr(profile, "id", 0), SupplierDocumentType.tax_clearance, tax_clearance_file)
     _store_supplier_document(db, getattr(profile, "id", 0), SupplierDocumentType.company_profile, company_profile_file)
 
-    email_service.send_email(
+    # Send welcome email in background
+    background_tasks.add_task(
+        email_service.send_email,
         [registration.email],
-        subject="Welcome to ProcuraHub",
-        body=(
+        "Welcome to ProcuraHub",
+        (
             f"Hello {registration.full_name},\n\n"
             "Your supplier account has been created successfully. "
             "You can now sign in to respond to RFQs and manage your company profile.\n\n"
