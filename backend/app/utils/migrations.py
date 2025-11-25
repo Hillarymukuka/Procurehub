@@ -230,6 +230,7 @@ def _department_table_sql(dialect_name: str) -> str:
             id SERIAL PRIMARY KEY,
             name VARCHAR(255) NOT NULL UNIQUE,
             description TEXT NULL,
+            head_of_department_id INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NULL
         )
@@ -240,6 +241,7 @@ def _department_table_sql(dialect_name: str) -> str:
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(255) NOT NULL UNIQUE,
         description TEXT NULL,
+        head_of_department_id INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NULL
     )
@@ -248,13 +250,25 @@ def _department_table_sql(dialect_name: str) -> str:
 
 def _ensure_departments_table(engine: Engine) -> None:
     inspector = inspect(engine)
-    if "departments" in inspector.get_table_names():
+    if "departments" not in inspector.get_table_names():
+        logger.info("Creating departments table")
+        create_sql = _department_table_sql(engine.dialect.name)
+        with engine.begin() as connection:
+            connection.execute(text(create_sql))
         return
-
-    logger.info("Creating departments table")
-    create_sql = _department_table_sql(engine.dialect.name)
-    with engine.begin() as connection:
-        connection.execute(text(create_sql))
+    
+    # Table exists, check if head_of_department_id column exists
+    existing_columns = {column["name"] for column in inspector.get_columns("departments")}
+    
+    if "head_of_department_id" not in existing_columns:
+        logger.info("Adding head_of_department_id column to departments table")
+        if engine.dialect.name == "postgresql":
+            add_column_sql = "ALTER TABLE departments ADD COLUMN head_of_department_id INTEGER NULL REFERENCES users(id) ON DELETE SET NULL"
+        else:
+            add_column_sql = "ALTER TABLE departments ADD COLUMN head_of_department_id INTEGER NULL REFERENCES users(id) ON DELETE SET NULL"
+        
+        with engine.begin() as connection:
+            connection.execute(text(add_column_sql))
 
 
 def _quotation_tax_column_definitions(dialect_name: str) -> Dict[str, str]:

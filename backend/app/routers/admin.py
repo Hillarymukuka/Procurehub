@@ -167,7 +167,6 @@ def list_departments(
             "id": dept.id,
             "name": dept.name,
             "description": dept.description,
-            "budget": float(dept.budget) if dept.budget else None,
             "head_count": db.query(User).filter(
                 User.role == UserRole.head_of_department
             ).count(),
@@ -180,7 +179,6 @@ def list_departments(
 def create_department(
     name: str = Form(...),
     description: Optional[str] = Form(None),
-    budget: Optional[float] = Form(None),
     db: Session = Depends(get_db),
     _: User = Depends(require_roles(UserRole.superadmin)),
 ):
@@ -198,7 +196,6 @@ def create_department(
     department = Department(
         name=name,
         description=description,
-        budget=budget
     )
     
     db.add(department)
@@ -209,7 +206,6 @@ def create_department(
         "id": department.id,
         "name": department.name,
         "description": department.description,
-        "budget": float(department.budget) if department.budget else None,
     }
 
 
