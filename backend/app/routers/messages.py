@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -23,6 +23,7 @@ def _get_user_full_name(user: Optional[User]) -> str:
 @router.post("/", response_model=MessageResponse)
 def send_message(
     message_data: MessageCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -86,11 +87,12 @@ def send_message(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
-                recipients=[recipient_email],
-                subject=f"New Message: {message_data.subject}",
-                body=plain_body,
-                html_body=html_body
+            background_tasks.add_task(
+                email_service.send_email,
+                [recipient_email],
+                f"New Message: {message_data.subject}",
+                plain_body,
+                html_body
             )
     except Exception as e:
         # Log the error but don't fail the message creation
@@ -116,6 +118,7 @@ def send_message(
 @router.post("/reply", response_model=MessageResponse)
 def reply_to_message(
     message_data: MessageCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -178,11 +181,12 @@ def reply_to_message(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
-                recipients=[recipient_email],
-                subject=f"Reply: {message_data.subject}",
-                body=plain_body,
-                html_body=html_body
+            background_tasks.add_task(
+                email_service.send_email,
+                [recipient_email],
+                f"Reply: {message_data.subject}",
+                plain_body,
+                html_body
             )
     except Exception as e:
         # Log the error but don't fail the message creation

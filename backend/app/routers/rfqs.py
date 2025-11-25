@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import Any, Iterable, Sequence
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse, Response
 from pydantic import ValidationError
 from sqlalchemy.orm import Session, selectinload, joinedload
@@ -592,6 +592,7 @@ def update_rfq(
 @router.post("/{rfq_id}/quotations", status_code=status.HTTP_201_CREATED)
 async def submit_quotation(
     rfq_id: int,
+    background_tasks: BackgroundTasks,
     amount: Decimal = Form(...),
     currency: str = Form("USD"),
     tax_type: str | None = Form(None),
@@ -702,11 +703,12 @@ async def submit_quotation(
             f"Best regards,\nProcuraHub Team"
         )
         
-        email_service.send_email(
+        background_tasks.add_task(
+            email_service.send_email,
             [proc_email],
-            subject=f"New Quotation - {rfq_title}",
-            body=plain_body,
-            html_body=html_body,
+            f"New Quotation - {rfq_title}",
+            plain_body,
+            html_body,
         )
     
     return {"quotation_id": quotation.id}
@@ -760,6 +762,7 @@ def request_finance_approval(
 def approve_quotation(
     rfq_id: int,
     quotation_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.finance, UserRole.superadmin, UserRole.procurement)),
     budget_override_justification: str | None = Form(None),
@@ -928,11 +931,12 @@ def approve_quotation(
             f"Best regards,\nProcuraHub Team"
         )
         
-        email_service.send_email(
+        background_tasks.add_task(
+            email_service.send_email,
             [supplier_email],
-            subject=f"Quotation Approved - {getattr(rfq, 'title')}",
-            body=plain_body,
-            html_body=html_body,
+            f"Quotation Approved - {getattr(rfq, 'title')}",
+            plain_body,
+            html_body,
         )
 
     # Notify requester
@@ -941,10 +945,11 @@ def approve_quotation(
             f"Hello {requester_name}" if requester_name else "Hello"
         )
         
-        email_service.send_email(
+        background_tasks.add_task(
+            email_service.send_email,
             [requester_email],
-            subject=f"Supplier Awarded - {getattr(rfq, 'title')}",
-            body=(
+            f"Supplier Awarded - {getattr(rfq, 'title')}",
+            (
                 f"{requester_salutation},\n\n"
                 f"Procurement has awarded RFQ '{getattr(rfq, 'title')}' to {supplier_name}.\n\n"
                 "You'll receive follow-up communication with the next steps."
@@ -966,11 +971,12 @@ def approve_quotation(
             f"Best regards,\nProcuraHub Team"
         )
         
-        email_service.send_email(
+        background_tasks.add_task(
+            email_service.send_email,
             [email],
-            subject=f"RFQ Update - {getattr(rfq, 'title')}",
-            body=plain_body,
-            html_body=html_body,
+            f"RFQ Update - {getattr(rfq, 'title')}",
+            plain_body,
+            html_body,
         )
 
     # Notify procurement staff about quotation approval/rejection
@@ -1014,6 +1020,7 @@ def approve_quotation(
 def reject_quotation(
     rfq_id: int,
     quotation_id: int,
+    background_tasks: BackgroundTasks,
     rejection_reason: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.finance, UserRole.superadmin, UserRole.procurement)),
@@ -1064,11 +1071,12 @@ def reject_quotation(
             f"Best regards,\nProcuraHub Team"
         )
         
-        email_service.send_email(
+        background_tasks.add_task(
+            email_service.send_email,
             [supplier_email],
-            subject=f"Quotation Decision - {getattr(rfq, 'title')}",
-            body=plain_body,
-            html_body=html_body,
+            f"Quotation Decision - {getattr(rfq, 'title')}",
+            plain_body,
+            html_body,
         )
     
     # Notify procurement staff about rejection
