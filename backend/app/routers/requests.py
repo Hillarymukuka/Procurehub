@@ -552,6 +552,7 @@ def hod_approve_request(
 def hod_reject_request(
     request_id: int,
     rejection_in: RequestHODRejection,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.head_of_department, UserRole.superadmin)),
 ):
@@ -601,11 +602,12 @@ def hod_reject_request(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
+            background_tasks.add_task(
+                email_service.send_email,
                 [requester_email],
-                subject=f"Request Not Approved - {getattr(request_obj, 'title')}",
-                body=plain_body,
-                html_body=None,
+                f"Request Not Approved - {getattr(request_obj, 'title')}",
+                plain_body,
+                None,
             )
         
         return _build_request_response(request_obj)
@@ -625,6 +627,7 @@ def hod_reject_request(
 def approve_request(
     request_id: int,
     approval_in: RequestProcurementReview,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.procurement, UserRole.superadmin)),
 ):
@@ -678,11 +681,12 @@ def approve_request(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
+            background_tasks.add_task(
+                email_service.send_email,
                 [requester_email],
-                subject=f"Request Approved - {getattr(request_obj, 'title')}",
-                body=plain_body,
-                html_body=None,
+                f"Request Approved - {getattr(request_obj, 'title')}",
+                plain_body,
+                None,
             )
         
         # Send email to HOD if request has a department with assigned HOD
@@ -704,11 +708,12 @@ def approve_request(
                     f"Best regards,\nProcuraHub Team"
                 )
                 
-                email_service.send_email(
+                background_tasks.add_task(
+                    email_service.send_email,
                     [hod_email],
-                    subject=f"Department Request Approved - {getattr(request_obj, 'title')}",
-                    body=plain_body,
-                    html_body=None,
+                    f"Department Request Approved - {getattr(request_obj, 'title')}",
+                    plain_body,
+                    None,
                 )
 
         return _build_request_response(request_obj)
@@ -728,6 +733,7 @@ def approve_request(
 def deny_request(
     request_id: int,
     denial_in: RequestDenial,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.procurement, UserRole.superadmin)),
 ):
@@ -772,11 +778,12 @@ def deny_request(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
+            background_tasks.add_task(
+                email_service.send_email,
                 [requester_email],
-                subject=f"Request Rejected by Procurement - {getattr(request_obj, 'title')}",
-                body=plain_body,
-                html_body=html_body,
+                f"Request Rejected by Procurement - {getattr(request_obj, 'title')}",
+                plain_body,
+                html_body,
             )
         
         # Send email to HOD if request has a department with assigned HOD
@@ -800,11 +807,12 @@ def deny_request(
                     f"Best regards,\nProcuraHub Team"
                 )
                 
-                email_service.send_email(
+                background_tasks.add_task(
+                    email_service.send_email,
                     [hod_email],
-                    subject=f"Department Request Rejected - {getattr(request_obj, 'title')}",
-                    body=plain_body_hod,
-                    html_body=None,
+                    f"Department Request Rejected - {getattr(request_obj, 'title')}",
+                    plain_body_hod,
+                    None,
                 )
 
         return _build_request_response(request_obj)
@@ -824,6 +832,7 @@ def deny_request(
 def finance_approve_request(
     request_id: int,
     approval_in: RequestFinanceApproval,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.finance, UserRole.superadmin)),
 ):
@@ -892,11 +901,12 @@ def finance_approve_request(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
+            background_tasks.add_task(
+                email_service.send_email,
                 [requester_email],
-                subject=f"Finance Approved - {getattr(request_obj, 'title')}",
-                body=plain_body,
-                html_body=html_body,
+                f"Finance Approved - {getattr(request_obj, 'title')}",
+                plain_body,
+                html_body,
             )
         
         # Also notify procurement reviewer
@@ -925,10 +935,11 @@ def finance_approve_request(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
+            background_tasks.add_task(
+                email_service.send_email,
                 [procurement_email],
-                subject=f"Finance Approved - {getattr(request_obj, 'title')}",
-                body=plain_body_procurement,
+                f"Finance Approved - {getattr(request_obj, 'title')}",
+                plain_body_procurement,
             )
 
         return _build_request_response(request_obj)
@@ -948,6 +959,7 @@ def finance_approve_request(
 def finance_reject_request(
     request_id: int,
     rejection_in: RequestFinanceRejection,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.finance, UserRole.superadmin)),
 ):
@@ -995,11 +1007,12 @@ def finance_reject_request(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
+            background_tasks.add_task(
+                email_service.send_email,
                 [requester_email],
-                subject=f"Request Rejected by Finance - {getattr(request_obj, 'title')}",
-                body=plain_body,
-                html_body=html_body,
+                f"Request Rejected by Finance - {getattr(request_obj, 'title')}",
+                plain_body,
+                html_body,
             )
         
         # Also notify procurement reviewer
@@ -1018,10 +1031,11 @@ def finance_reject_request(
                 f"Best regards,\nProcuraHub Team"
             )
             
-            email_service.send_email(
+            background_tasks.add_task(
+                email_service.send_email,
                 [procurement_email],
-                subject=f"Finance Rejected - {getattr(request_obj, 'title')}",
-                body=plain_body_procurement,
+                f"Finance Rejected - {getattr(request_obj, 'title')}",
+                plain_body_procurement,
             )
 
         return _build_request_response(request_obj, include_documents=False)
@@ -1041,6 +1055,7 @@ def finance_reject_request(
 def invite_suppliers(
     request_id: int,
     invite_in: RequestSupplierInvite,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.procurement, UserRole.superadmin)),
 ):
@@ -1150,10 +1165,11 @@ def invite_suppliers(
     db.refresh(rfq)
 
     if request_obj.requester and request_obj.requester.email:
-        email_service.send_email(
+        background_tasks.add_task(
+            email_service.send_email,
             [request_obj.requester.email],
-            subject=f"RFQ Invitations Sent for {request_obj.title}",
-            body=(
+            f"RFQ Invitations Sent for {request_obj.title}",
+            (
                 f"Hello {request_obj.requester.full_name or ''},\n\n"
                 f"Procurement has sent RFQ invitations to selected suppliers for your request "
                 f"\"{request_obj.title}\". Suppliers have been asked to respond by "
