@@ -39,11 +39,10 @@ class Settings(BaseSettings):
     
     # SMTP Configuration
     smtp_host: str = Field(default="smtp.gmail.com", env="SMTP_HOST")
-    smtp_port: int = Field(default=465, env="SMTP_PORT")  # Port 465 for SSL (better for Render)
+    smtp_port: int = Field(default=587, env="SMTP_PORT")
     smtp_username: Optional[str] = Field(default=None, env="SMTP_USERNAME")
     smtp_password: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
-    smtp_use_tls: bool = Field(default=False, env="SMTP_USE_TLS")  # False for SSL port 465
-    smtp_use_ssl: bool = Field(default=True, env="SMTP_USE_SSL")  # True for SSL port 465
+    smtp_use_tls: bool = Field(default=True, env="SMTP_USE_TLS")
 
     upload_dir: Optional[Path] = Field(default=None, env="UPLOAD_DIR")
 
