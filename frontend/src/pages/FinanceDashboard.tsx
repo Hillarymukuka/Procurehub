@@ -49,14 +49,9 @@ interface FinanceReviewFormState {
   finance_notes: string;
   rejection_reason: string;
 }
-const getDownloadUrl = (documentPath: string) => {
-  const apiBase = import.meta.env.VITE_API_BASE_URL || '';
-  const uploadIndex = documentPath.lastIndexOf("uploads");
-  if (uploadIndex !== -1) {
-    const relativePath = documentPath.substring(uploadIndex + 7).replace(/^[\\/]+/, "");
-    return `${apiBase}/uploads/${relativePath}`;
-  }
-  return `${apiBase}/uploads/${documentPath}`;
+const getQuotationDownloadUrl = (rfqId: number, quotationId: number) => {
+  const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
+  return `${apiBase.replace(/\/$/, '')}/rfqs/${rfqId}/quotations/${quotationId}/download`;
 };
 
 
@@ -959,7 +954,7 @@ const FinanceDashboard: React.FC = () => {
                           </span>
                           {quotation.document_path && quotation.original_filename ? (
                             <a
-                              href={getDownloadUrl(quotation.document_path)}
+                              href={getQuotationDownloadUrl(selectedRfq.id, quotation.id)}
                               className="text-xs font-semibold text-primary hover:underline"
                               target="_blank"
                               rel="noopener noreferrer"

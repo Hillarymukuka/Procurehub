@@ -329,22 +329,10 @@ const RequesterDashboard: React.FC = () => {
     }
   };
 
-  const getDocumentDownloadUrl = (documentPath: string) => {
-    if (!documentPath) {
-      return "#";
-    }
+  const getDocumentDownloadUrl = (requestId: number) => {
     const apiBase = import.meta.env.VITE_API_BASE_URL ?? "";
-    const normalizedBase = apiBase.replace(/\/api\/?$/, "").replace(/\/$/, "");
-    const cleanedPath = documentPath.startsWith("uploads/")
-      ? documentPath.replace(/^uploads\//, "")
-      : documentPath.replace(/^\/+/, "");
-    if (normalizedBase) {
-      return `${normalizedBase}/uploads/${cleanedPath}`;
-    }
-    if (apiBase) {
-      return `${apiBase.replace(/\/$/, "")}/uploads/${cleanedPath}`;
-    }
-    return `/uploads/${cleanedPath}`;
+    const baseUrl = apiBase ? apiBase.replace(/\/$/, "") : "/api";
+    return `${baseUrl}/requests/${requestId}/document`;
   };
 
   const counts = useMemo(() => {
@@ -770,7 +758,7 @@ const RequesterDashboard: React.FC = () => {
                         </p>
                       </div>
                       <a
-                        href={getDocumentDownloadUrl(document.file_path)}
+                        href={getDocumentDownloadUrl(selectedRequest.id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="rounded border border-primary px-3 py-1 font-semibold text-primary hover:bg-primary/10"

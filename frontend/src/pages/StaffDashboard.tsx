@@ -1017,17 +1017,19 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
     }
   };
 
-  const getDownloadUrl = (documentPath: string) => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || '';
-    // If path contains 'uploads' (old absolute paths), extract relative part
-    const uploadIndex = documentPath.lastIndexOf('uploads');
-    if (uploadIndex !== -1) {
-      const relativePath = documentPath.substring(uploadIndex + 7).replace(/^[\/\\]+/, '');
-      return `${apiBase}/uploads/${relativePath}`;
-    }
-    
-    // For new relative paths, just prepend the uploads base URL
-    return `${apiBase}/uploads/${documentPath}`;
+  const getRequestDocumentDownloadUrl = (requestId: number) => {
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
+    return `${apiBase.replace(/\/$/, '')}/requests/${requestId}/document`;
+  };
+
+  const getQuotationDownloadUrl = (rfqId: number, quotationId: number) => {
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
+    return `${apiBase.replace(/\/$/, '')}/rfqs/${rfqId}/quotations/${quotationId}/download`;
+  };
+
+  const getSupplierDocumentDownloadUrl = (documentId: number) => {
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
+    return `${apiBase.replace(/\/$/, '')}/suppliers/documents/${documentId}/download`;
   };
 
   const isImageDocument = (document: RequestDocument) => {
@@ -2954,7 +2956,7 @@ const actions = canCreate ? (
                         {selectedRequest.documents.slice(0, 4).map((document) => (
                           <a
                             key={document.id}
-                            href={getDownloadUrl(document.file_path)}
+                            href={getRequestDocumentDownloadUrl(selectedRequest.id)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-between rounded border border-slate-200 px-3 py-2 text-xs text-slate-700 transition hover:border-secondary hover:text-secondary"
@@ -3119,14 +3121,14 @@ const actions = canCreate ? (
                           {imageDocuments.map((document) => (
                             <a
                               key={document.id}
-                              href={getDownloadUrl(document.file_path)}
+                              href={getRequestDocumentDownloadUrl(selectedRequest.id)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="group overflow-hidden rounded-lg border border-slate-200 shadow-sm transition hover:border-secondary hover:shadow-md"
                             >
                               <div className="aspect-video w-full bg-slate-100">
                                 <img
-                                  src={getDownloadUrl(document.file_path)}
+                                  src={getRequestDocumentDownloadUrl(selectedRequest.id)}
                                   alt={document.original_filename}
                                   className="h-full w-full object-cover transition group-hover:scale-105"
                                 />
@@ -3154,7 +3156,7 @@ const actions = canCreate ? (
                                 {document.original_filename}
                               </span>
                               <a
-                                href={getDownloadUrl(document.file_path)}
+                                href={getRequestDocumentDownloadUrl(selectedRequest.id)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="rounded border border-primary px-3 py-1 font-semibold uppercase text-primary hover:bg-primary/10"
@@ -4450,7 +4452,7 @@ const actions = canCreate ? (
                         </p>
                       </div>
                       <a
-                        href={getDownloadUrl(document.file_path)}
+                        href={getSupplierDocumentDownloadUrl(document.id)}
                         download
                         className="ml-4 rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700"
                       >
@@ -4585,7 +4587,7 @@ const actions = canCreate ? (
                       </div>
                     </div>
                     <a
-                      href={getDownloadUrl(selectedQuotation.document_path)}
+                      href={getQuotationDownloadUrl(selectedRfq.id, selectedQuotation.id)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10"
