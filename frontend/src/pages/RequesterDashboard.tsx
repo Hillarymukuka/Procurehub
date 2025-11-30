@@ -489,9 +489,11 @@ const RequesterDashboard: React.FC = () => {
                 required
                 type="date"
                 value={form.needed_by.split('T')[0]}
+                min={new Date().toISOString().split('T')[0]}
                 onChange={(event) => setForm((prev) => ({ ...prev, needed_by: event.target.value }))}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
+              <p className="mt-1 text-xs text-slate-500">Date must be today or in the future</p>
             </div>
 
             <div className="md:col-span-2">

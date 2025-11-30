@@ -1,10 +1,10 @@
 """RFQ and quotation schemas."""
 
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 from typing import Any, List, Optional
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, field_validator
 
 from .common import ORMBase
 
@@ -24,6 +24,13 @@ class RFQUpdate(ORMBase):
     budget: Optional[Decimal] = None
     deadline: Optional[datetime] = None
     status: Optional[str] = None
+    
+    @field_validator('deadline')
+    @classmethod
+    def deadline_not_in_past(cls, v: Optional[datetime]) -> Optional[datetime]:
+        if v is not None and v.date() < date.today():
+            raise ValueError('RFQ deadline cannot be in the past')
+        return v
 
 
 class RFQDocumentRead(ORMBase):

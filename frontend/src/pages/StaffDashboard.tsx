@@ -3230,12 +3230,14 @@ const StaffDashboard: React.FC = () => {
                 <input
                   type="date"
                   value={approvalForm.needed_by}
+                  min={new Date().toISOString().split('T')[0]}
                   onChange={(event) =>
                     setApprovalForm((prev) => ({ ...prev, needed_by: event.target.value }))
                   }
                   disabled={isApproveReadOnly || submitting}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-secondary focus:outline-none"
                 />
+                <p className="mt-1 text-xs text-slate-500">Date must be today or in the future</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700">Budget Amount</label>

@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class RequestStatusEnum(str, Enum):
@@ -25,6 +25,13 @@ class RequestBase(BaseModel):
     category: str
     department_id: int
     needed_by: datetime
+    
+    @field_validator('needed_by')
+    @classmethod
+    def needed_by_not_in_past(cls, v: datetime) -> datetime:
+        if v.date() < date.today():
+            raise ValueError('needed_by date cannot be in the past')
+        return v
 
 
 class RequestCreate(RequestBase):
@@ -90,6 +97,13 @@ class RequestSupplierInvite(BaseModel):
     supplier_ids: List[int]
     rfq_deadline: datetime = Field(..., description="The deadline for the RFQ")
     notes: Optional[str] = None
+    
+    @field_validator('rfq_deadline')
+    @classmethod
+    def rfq_deadline_not_in_past(cls, v: datetime) -> datetime:
+        if v.date() < date.today():
+            raise ValueError('RFQ deadline cannot be in the past')
+        return v
 
 
 class RequestDocumentRead(BaseModel):
