@@ -183,10 +183,8 @@ const RequesterDashboard: React.FC = () => {
       files.forEach((file) => formData.append("files", file));
       const { data } = await apiClient.post<PurchaseRequest>(
         `/api/requests/${requestId}/documents`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        formData
+        // Don't set Content-Type header - axios will set it with the correct boundary
       );
       return data;
     } finally {
