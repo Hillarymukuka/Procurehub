@@ -217,11 +217,16 @@ const RequesterDashboard: React.FC = () => {
         return;
       }
 
+      // Convert date-only input to ISO datetime (end of day in local time)
+      const neededByDate = form.needed_by.includes('T') 
+        ? form.needed_by 
+        : `${form.needed_by}T17:00:00`;
+
       const payload: RequestCreatePayload = {
         ...form,
         category,
         department_id: Number(form.department_id),
-        needed_by: toUtc(form.needed_by),
+        needed_by: neededByDate,
       };
 
       let createdRequest = (
