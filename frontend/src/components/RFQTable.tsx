@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+
 import clsx from "clsx";
 import { RFQ } from "../utils/types";
 
@@ -8,6 +8,8 @@ interface RFQTableProps {
   onDoubleClick?: (rfq: RFQ) => void;
 }
 
+import { useTimezone } from "../hooks/useTimezone";
+
 const statusStyles: Record<string, string> = {
   open: "bg-secondary/20 text-secondary-dark",
   closed: "bg-sand-dark text-primary/70",
@@ -16,6 +18,8 @@ const statusStyles: Record<string, string> = {
 };
 
 const RFQTable: React.FC<RFQTableProps> = ({ data, onSelect, onDoubleClick }) => {
+  const { formatDisplay } = useTimezone();
+
   if (!data.length) {
     return (
       <div className="rounded-xl border border-dashed border-primary/15 bg-sand p-10 text-center text-sm text-primary/70">
@@ -63,39 +67,45 @@ const RFQTable: React.FC<RFQTableProps> = ({ data, onSelect, onDoubleClick }) =>
                   if (onDoubleClick) onDoubleClick(rfq);
                 }}
               >
-              <td className="px-6 py-4 font-mono text-xs text-primary/60">{rfq.rfq_number}</td>
-              <td className="px-6 py-4">
-                <p className="font-medium text-primary">{rfq.title}</p>
-                <p className="text-xs text-primary/60">{rfq.description.slice(0, 80)}...</p>
-                {isSubmitted ? (
-                  <p className="mt-1 text-xs font-semibold text-secondary">
-                    Submitted already
-                    {rfq.quotation_status && rfq.quotation_status !== "submitted"
-                      ? ` • ${rfq.quotation_status.replace(/_/g, " ")}`
-                      : ""}
-                  </p>
-                ) : null}
-              </td>
-              <td className="px-6 py-4 text-primary/80">{rfq.category}</td>
-              {showBudget && (
-                <td className="px-6 py-4 font-medium text-primary">
-                  {rfq.budget !== undefined ? new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: rfq.currency ?? "USD"
-                  }).format(Number(rfq.budget)) : 'N/A'}
+                <td className="px-6 py-4 font-mono text-xs text-primary/60">{rfq.rfq_number}</td>
+                <td className="px-6 py-4">
+                  <p className="font-medium text-primary">{rfq.title}</p>
+                  <p className="text-xs text-primary/60">{rfq.description.slice(0, 80)}...</p>
+                  {isSubmitted ? (
+                    <p className="mt-1 text-xs font-semibold text-secondary">
+                      Submitted already
+                      {rfq.quotation_status && rfq.quotation_status !== "submitted"
+                        ? ` • ${rfq.quotation_status.replace(/_/g, " ")}`
+                        : ""}
+                    </p>
+                  ) : null}
                 </td>
-              )}
-              <td className="px-6 py-4 text-primary/70">{format(new Date(rfq.deadline), "PPpp")}</td>
-              <td className="px-6 py-4">
-                <span
-                  className={clsx(
-                    "rounded-full px-3 py-1 text-xs font-semibold",
-                    statusStyles[rfq.status] ?? "bg-primary/10 text-primary"
-                  )}
-                >
-                  {rfq.status}
-                </span>
-              </td>
+                <td className="px-6 py-4 text-primary/80">{rfq.category}</td>
+                {showBudget && (
+                  <td className="px-6 py-4 font-medium text-primary">
+                    {rfq.budget !== undefined ? new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: rfq.currency ?? "USD"
+                    }).format(Number(rfq.budget)) : 'N/A'}
+                  </td>
+                )}
+                <td className="px-6 py-4 text-primary/70">
+                  {formatDisplay(rfq.deadline, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric"
+                  })}
+                </td>
+                <td className="px-6 py-4">
+                  <span
+                    className={clsx(
+                      "rounded-full px-3 py-1 text-xs font-semibold",
+                      statusStyles[rfq.status] ?? "bg-primary/10 text-primary"
+                    )}
+                  >
+                    {rfq.status}
+                  </span>
+                </td>
               </tr>
             );
           })}

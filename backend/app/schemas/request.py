@@ -88,7 +88,7 @@ class RequestFinanceRejection(BaseModel):
 
 class RequestSupplierInvite(BaseModel):
     supplier_ids: List[int]
-    rfq_deadline: datetime
+    rfq_deadline: datetime = Field(..., description="The deadline for the RFQ")
     notes: Optional[str] = None
 
 

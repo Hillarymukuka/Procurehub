@@ -16,7 +16,7 @@ class RFQCreate(ORMBase):
     category: str
     budget: Decimal = Field(gt=0)
     currency: str = "USD"
-    deadline: datetime
+    deadline_days: int = Field(gt=0, description="Number of days from now for the deadline")
 
 
 class RFQUpdate(ORMBase):

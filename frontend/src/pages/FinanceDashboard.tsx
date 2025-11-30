@@ -50,8 +50,14 @@ interface FinanceReviewFormState {
   rejection_reason: string;
 }
 const getQuotationDownloadUrl = (rfqId: number, quotationId: number) => {
-  const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
-  return `${apiBase.replace(/\/$/, '')}/rfqs/${rfqId}/quotations/${quotationId}/download`;
+  const raw = import.meta.env.VITE_API_BASE_URL ?? "";
+  const normalized = raw ? raw.replace(/\/$/, "") : "";
+  const apiBase = normalized
+    ? normalized.endsWith("/api")
+      ? normalized
+      : `${normalized}/api`
+    : "/api";
+  return `${apiBase}/rfqs/${rfqId}/quotations/${quotationId}/download`;
 };
 
 
@@ -917,7 +923,7 @@ const FinanceDashboard: React.FC = () => {
                             ) : null}
                           </p>
                           <p className="text-xs text-slate-500">
-                            Submitted {new Date(quotation.submitted_at).toLocaleString()}
+                            Submitted {new Date(quotation.submitted_at).toLocaleDateString()}
                           </p>
                           <p
                             className={clsx(

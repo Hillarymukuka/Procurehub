@@ -240,7 +240,7 @@ const StaffDashboard: React.FC = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierWithUser | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isSupplierProfileOpen, setIsSupplierProfileOpen] = useState(false);
-const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
+  const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [sentMessages, setSentMessages] = useState<Message[]>([]);
   const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
@@ -267,24 +267,24 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
   const [budgetOverrideJustification, setBudgetOverrideJustification] = useState("");
   const [pendingApproval, setPendingApproval] = useState<{ rfqId: number; quotationId: number } | null>(null);
   const [deadlineTimer, setDeadlineTimer] = useState<string>("");
-  
+
   // Delivery tracking state
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [deliveryQuotation, setDeliveryQuotation] = useState<{ rfqId: number; quotationId: number } | null>(null);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryNote, setDeliveryNote] = useState<File | null>(null);
-  
+
   // Notification badges state
   const [unreadRfqUpdates, setUnreadRfqUpdates] = useState(0);
   const [unreadRequestUpdates, setUnreadRequestUpdates] = useState(0);
   const [lastRfqCheckTime, setLastRfqCheckTime] = useState<number>(0);
   const [lastRequestCheckTime, setLastRequestCheckTime] = useState<number>(0);
-  
+
   // Draft RFQ approval with supplier selection
   const [isApproveRfqModalOpen, setIsApproveRfqModalOpen] = useState(false);
   const [rfqToApprove, setRfqToApprove] = useState<RFQ | null>(null);
   const [selectedSupplierIdsForApproval, setSelectedSupplierIdsForApproval] = useState<number[]>([]);
-  
+
   const canCreate = user?.role === "Procurement" || user?.role === "ProcurementOfficer" || user?.role === "SuperAdmin";
   const canApprove = user?.role === "Procurement" || user?.role === "SuperAdmin" || user?.role === "Finance";
   const canApproveRfq = user?.role === "Procurement" || user?.role === "SuperAdmin";
@@ -332,9 +332,10 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
     const neededBy = request.needed_by ? new Date(request.needed_by) : null;
     if (neededBy && neededBy.getTime() > Date.now()) {
       const oneDayBefore = new Date(neededBy.getTime() - 24 * 60 * 60 * 1000);
-      return toDateTimeLocal(oneDayBefore);
+      return oneDayBefore.toISOString().split('T')[0];
     }
-    return toDateTimeLocal(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    return nextWeek.toISOString().split('T')[0];
   };
 
   const requestStatusStyles: Record<RequestStatus, string> = {
@@ -520,33 +521,33 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       // Get all RFQs and filter for those with delivered quotations
       const { data: allRfqs } = await apiClient.get<RFQ[]>("/api/rfqs/");
       const deliveredQuotations: Quotation[] = [];
-      
+
       // Fetch details for each RFQ to get quotations
       for (const rfq of allRfqs) {
         try {
           const { data: rfqDetails } = await apiClient.get<RFQWithQuotations>(`/api/rfqs/${rfq.id}`);
           const delivered = rfqDetails.quotations?.filter(q => q.delivery_status === "delivered") || [];
-          
+
           // Add RFQ info to each quotation for display
           delivered.forEach(q => {
             (q as any).rfq_title = rfqDetails.title;
             (q as any).rfq_number = rfqDetails.rfq_number;
             (q as any).rfq_category = rfqDetails.category;
           });
-          
+
           deliveredQuotations.push(...delivered);
         } catch (err) {
           console.error(`Failed to load details for RFQ ${rfq.id}:`, err);
         }
       }
-      
+
       // Sort by delivery date (most recent first)
       deliveredQuotations.sort((a, b) => {
         const dateA = a.delivered_at ? new Date(a.delivered_at).getTime() : 0;
         const dateB = b.delivered_at ? new Date(b.delivered_at).getTime() : 0;
         return dateB - dateA;
       });
-      
+
       setDeliveredContracts(deliveredQuotations);
     } catch (err) {
       console.error("Failed to load delivered contracts:", err);
@@ -614,12 +615,12 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
     loadRequests();
     loadPurchaseOrders();
     loadDeliveredContracts();
-    
+
     // Auto-refresh requests every 30 seconds to catch finance approvals
     const requestsInterval = setInterval(() => {
       loadRequests();
     }, 30000); // 30 seconds
-    
+
     return () => {
       clearInterval(requestsInterval);
     };
@@ -698,7 +699,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
         setSubmitting(false);
         return;
       }
-      
+
       const formData = new FormData();
       formData.append("title", form.title);
       formData.append("description", form.description);
@@ -741,7 +742,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       formData.append("contact_email", supplierForm.contact_email);
       formData.append("full_name", supplierForm.full_name);
       formData.append("password", supplierForm.password);
-      
+
       if (supplierForm.contact_phone) {
         formData.append("contact_phone", supplierForm.contact_phone);
       }
@@ -780,7 +781,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
           "Content-Type": "multipart/form-data",
         },
       });
-      
+
       setIsCreateSupplierOpen(false);
       setSupplierForm({ ...emptySupplierForm });
       setSuccess("Supplier created successfully! Login credentials have been emailed.");
@@ -816,7 +817,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
 
   const handleApproveDraftRfq = async () => {
     if (!rfqToApprove) return;
-    
+
     setSubmitting(true);
     setError(null);
     try {
@@ -842,11 +843,11 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       if (!overrideJustification) {
         const quotation = selectedRfq?.quotations?.find((q) => q.id === quotationId);
         const rfq = selectedRfq;
-        
+
         if (quotation && rfq?.budget) {
           const quotationTotal = quotation.amount + (quotation.tax_amount || 0);
           const approvedBudget = rfq.budget;
-          
+
           if (quotationTotal > approvedBudget) {
             // Check if user is Procurement - they need to request finance approval
             if (user?.role?.toLowerCase() === "procurement") {
@@ -855,7 +856,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
               setIsBudgetOverrideModalOpen(true);
               return;
             }
-            
+
             // Show budget override modal for Finance/SuperAdmin
             setPendingApproval({ rfqId, quotationId });
             setIsBudgetOverrideModalOpen(true);
@@ -863,16 +864,16 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
           }
         }
       }
-      
-      const params = overrideJustification 
+
+      const params = overrideJustification
         ? { budget_override_justification: overrideJustification }
         : {};
-        
+
       await apiClient.post(`/api/rfqs/${rfqId}/quotations/${quotationId}/approve`, null, { params });
       await loadRfqDetails(rfqId);
       await loadRfqs();
       await loadPurchaseOrders();
-      
+
       // Clear pending approval state
       setPendingApproval(null);
       setBudgetOverrideJustification("");
@@ -892,24 +893,24 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       setError("Please provide a justification for the budget override.");
       return;
     }
-    
+
     try {
       const { rfqId, quotationId } = pendingApproval;
-      
+
       await apiClient.post(
         `/api/rfqs/${rfqId}/quotations/${quotationId}/request-finance-approval`,
         null,
         { params: { budget_override_justification: budgetOverrideJustification } }
       );
-      
+
       await loadRfqDetails(rfqId);
       await loadRfqs();
-      
+
       // Clear pending approval state
       setPendingApproval(null);
       setBudgetOverrideJustification("");
       setIsBudgetOverrideModalOpen(false);
-      
+
       // Show success message
       setError("Finance approval request submitted successfully. Waiting for Finance team to review.");
     } catch (err: any) {
@@ -923,15 +924,15 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       setError("Please provide delivery date and upload delivery note.");
       return;
     }
-    
+
     setSubmitting(true);
     try {
       const { rfqId, quotationId } = deliveryQuotation;
-      
+
       const formData = new FormData();
       formData.append("delivered_at", deliveryDate);
       formData.append("delivery_note", deliveryNote);
-      
+
       await apiClient.post(
         `/api/rfqs/${rfqId}/quotations/${quotationId}/mark-delivered`,
         formData,
@@ -941,17 +942,17 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
           },
         }
       );
-      
+
       await loadRfqDetails(rfqId);
       await loadRfqs();
       await loadDeliveredContracts();
-      
+
       // Clear state and close modal
       setDeliveryQuotation(null);
       setDeliveryDate("");
       setDeliveryNote(null);
       setIsDeliveryModalOpen(false);
-      
+
       setError("Contract marked as delivered successfully!");
     } catch (err: any) {
       console.error(err);
@@ -979,7 +980,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
           responseType: 'blob'
         }
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -1002,7 +1003,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
           responseType: 'blob'
         }
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -1017,19 +1018,26 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
     }
   };
 
-  const getRequestDocumentDownloadUrl = (requestId: number) => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
-    return `${apiBase.replace(/\/$/, '')}/requests/${requestId}/document`;
+  const getApiBase = () => {
+    const raw = import.meta.env.VITE_API_BASE_URL ?? "";
+    const normalized = raw ? raw.replace(/\/$/, "") : "";
+    return normalized
+      ? normalized.endsWith("/api")
+        ? normalized
+        : `${normalized}/api`
+      : "/api";
+  };
+
+  const getRequestDocumentDownloadUrl = (requestId: number, documentId: number) => {
+    return `${getApiBase()}/requests/${requestId}/documents/${documentId}`;
   };
 
   const getQuotationDownloadUrl = (rfqId: number, quotationId: number) => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
-    return `${apiBase.replace(/\/$/, '')}/rfqs/${rfqId}/quotations/${quotationId}/download`;
+    return `${getApiBase()}/rfqs/${rfqId}/quotations/${quotationId}/download`;
   };
 
   const getSupplierDocumentDownloadUrl = (documentId: number) => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
-    return `${apiBase.replace(/\/$/, '')}/suppliers/documents/${documentId}/download`;
+    return `${getApiBase()}/suppliers/documents/${documentId}/download`;
   };
 
   const isImageDocument = (document: RequestDocument) => {
@@ -1049,7 +1057,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
   const selectedRfqHasApprovedQuotation = useMemo(
     () => selectedRfq?.quotations?.some((quotation) => quotation.status === "approved") ?? false,
     [selectedRfq]
-);
+  );
 
   const handleCreateCategory = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1108,14 +1116,14 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
 
     try {
       setSubmitting(true);
-      
+
       // Get the supplier's user ID
       const userResponse = await apiClient.get(`/api/admin/suppliers/${selectedSupplier.id}/user`);
       const messageData = {
         ...messageForm,
         recipient_id: userResponse.data.user_id
       };
-      
+
       await apiClient.post("/api/messages/", messageData);
       setSuccess("Message sent successfully!");
       setIsMessageModalOpen(false);
@@ -1151,13 +1159,13 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       purchaseOrders: "purchaseOrders",
       deliveryNotes: "deliveryNotes",
     };
-    
+
     const expectedScope = scopeForTab[activeTab];
     const expectedTab = tabForScope[searchScope];
-    
+
     // Check if searchScope changed (user selected from dropdown)
     const scopeChanged = prevSearchScopeRef.current !== null && prevSearchScopeRef.current !== searchScope;
-    
+
     if (scopeChanged) {
       // User changed scope from dropdown, update tab
       if (activeTab !== expectedTab) {
@@ -1169,7 +1177,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
         setSearchScope(expectedScope);
       }
     }
-    
+
     // Update ref for next render
     prevSearchScopeRef.current = searchScope;
   }, [activeTab, searchScope]);
@@ -1433,16 +1441,16 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
     setSelectedMessageInCenter(message);
     setIsMessageDetailOpen(true);
     setReplyContent("");
-    
+
     // Mark as read if it's an unread received message
     if (messageViewMode === "received" && message.status === "sent") {
       try {
         await apiClient.put(`/api/messages/${message.id}/read`);
-        
+
         // Update the local state to mark as read
-        setReceivedMessages(prev => 
-          prev.map(msg => 
-            msg.id === message.id 
+        setReceivedMessages(prev =>
+          prev.map(msg =>
+            msg.id === message.id
               ? { ...msg, status: "read", read_at: new Date().toISOString() }
               : msg
           )
@@ -1455,7 +1463,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
 
   const handleReplyToMessage = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedMessageInCenter || !replyContent.trim()) {
       return;
     }
@@ -1469,14 +1477,14 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       };
 
       await apiClient.post("/api/messages/reply", replyData);
-      
+
       setReplyContent("");
       setIsMessageDetailOpen(false);
       setSelectedMessageInCenter(null);
-      
+
       // Reload messages to show the new sent message
       await loadMessages();
-      
+
       setError(null);
       setSuccess("Reply sent successfully!");
       setTimeout(() => setSuccess(null), 3000);
@@ -1510,7 +1518,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       description: request.description,
       justification: request.justification,
       category: request.category,
-      needed_by: toDateTimeLocal(request.needed_by),
+      needed_by: request.needed_by ? new Date(request.needed_by).toISOString().split('T')[0] : "",
       budget_amount: preferredAmount ? String(preferredAmount) : "",
       budget_currency: preferredCurrency,
       procurement_notes: request.procurement_notes ?? "",
@@ -1576,7 +1584,12 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
         payload.category = approvalForm.category.trim();
       }
       if (approvalForm.needed_by) {
-        const neededByDate = new Date(approvalForm.needed_by);
+        // If it's just a date (YYYY-MM-DD), append end of business day time
+        const dateStr = approvalForm.needed_by.includes('T')
+          ? approvalForm.needed_by
+          : `${approvalForm.needed_by}T17:00:00`;
+
+        const neededByDate = new Date(dateStr);
         if (!Number.isNaN(neededByDate.getTime())) {
           payload.needed_by = neededByDate.toISOString();
         }
@@ -1679,9 +1692,13 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
       setSubmitting(true);
       setError(null);
 
+      const deadlineStr = inviteForm.rfq_deadline.includes('T')
+        ? inviteForm.rfq_deadline
+        : `${inviteForm.rfq_deadline}T17:00:00`;
+
       await apiClient.post(`/api/requests/${inviteRequest.id}/invite-suppliers`, {
         supplier_ids: inviteForm.supplier_ids,
-        rfq_deadline: toUtc(inviteForm.rfq_deadline),
+        rfq_deadline: deadlineStr,
         notes: inviteForm.notes || undefined,
       });
 
@@ -1756,7 +1773,7 @@ const [isMessageCenterOpen, setIsMessageCenterOpen] = useState(false);
   const activeRfqDetail =
     selectedRfq && selectedRfqId === selectedRfq.id ? selectedRfq : null;
 
-const actions = canCreate ? (
+  const actions = canCreate ? (
     <button
       onClick={handleOpenMessageCenter}
       className="rounded-lg border border-secondary bg-white px-4 py-2 text-sm font-semibold text-secondary shadow-sm transition hover:bg-secondary hover:text-white flex items-center gap-2 relative"
@@ -2028,24 +2045,22 @@ const actions = canCreate ? (
                       awarded: "bg-indigo-100 text-indigo-700",
                       draft: "bg-yellow-100 text-yellow-700"
                     };
-                    
+
                     return (
                       <button
                         key={rfq.id}
                         onClick={() => loadRfqDetails(rfq.id)}
-                        className={`w-full rounded-xl border p-4 text-left transition ${
-                          isSelected
-                            ? "border-secondary bg-secondary/5"
-                            : "border-slate-200 hover:border-secondary hover:bg-slate-50"
-                        }`}
+                        className={`w-full rounded-xl border p-4 text-left transition ${isSelected
+                          ? "border-secondary bg-secondary/5"
+                          : "border-slate-200 hover:border-secondary hover:bg-slate-50"
+                          }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <h3 className="font-semibold text-primary text-sm leading-tight">
                             {rfq.title}
                           </h3>
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold shrink-0 ${
-                            statusColors[rfq.status as keyof typeof statusColors] ?? "bg-slate-200 text-slate-700"
-                          }`}>
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold shrink-0 ${statusColors[rfq.status as keyof typeof statusColors] ?? "bg-slate-200 text-slate-700"
+                            }`}>
                             {rfq.status}
                           </span>
                         </div>
@@ -2113,9 +2128,9 @@ const actions = canCreate ? (
                         </div>
                       </div>
                     </div>
-                    
+
                     <p className="text-sm text-slate-600 mb-4">{selectedRfq.description}</p>
-                    
+
                     {/* Created By Info for Draft RFQs */}
                     {selectedRfq.status === "draft" && selectedRfq.created_by_name && (
                       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
@@ -2153,7 +2168,7 @@ const actions = canCreate ? (
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Approve Draft RFQ Button for Procurement */}
                     {selectedRfq.status === "draft" && canApproveRfq && (
                       <div className="mb-4">
@@ -2170,7 +2185,7 @@ const actions = canCreate ? (
                         </p>
                       </div>
                     )}
-                    
+
                     <div className="grid gap-4 md:grid-cols-4 text-sm">
                       <div>
                         <p className="text-xs font-medium uppercase text-slate-500">Category</p>
@@ -2207,7 +2222,7 @@ const actions = canCreate ? (
                         {selectedRfq.quotations?.length ?? 0} submissions
                       </span>
                     </div>
-                    
+
                     {/* Locked Status Banner - Show before deadline */}
                     {new Date(selectedRfq.deadline) > new Date() && (
                       <div className="mb-4 rounded-lg border-2 border-secondary/30 bg-gradient-to-r from-secondary/5 to-secondary/10 p-5 shadow-sm">
@@ -2220,7 +2235,7 @@ const actions = canCreate ? (
                               Quotations Hidden Until Deadline
                             </h4>
                             <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-                              To ensure <strong>fair and unbiased evaluation</strong>, supplier quotations will remain hidden until the deadline passes. 
+                              To ensure <strong>fair and unbiased evaluation</strong>, supplier quotations will remain hidden until the deadline passes.
                               This prevents any advantage or disadvantage based on submission time.
                             </p>
                             <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -2244,15 +2259,15 @@ const actions = canCreate ? (
                             <div className="mt-3 pt-3 border-t border-secondary/20">
                               <div className="flex items-start gap-2 text-xs text-slate-700">
                                 <Lightbulb className="h-4 w-4 text-secondary flex-shrink-0 mt-0.5" strokeWidth={2} />
-                                <span><strong>Tip:</strong> You can review quotations immediately after the deadline passes. 
-                                The system will automatically unlock access at that time.</span>
+                                <span><strong>Tip:</strong> You can review quotations immediately after the deadline passes.
+                                  The system will automatically unlock access at that time.</span>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="space-y-3">
                       {selectedRfq.quotations && selectedRfq.quotations.length > 0 ? (
                         selectedRfq.quotations.map((quotation: Quotation) => (
@@ -2518,11 +2533,10 @@ const actions = canCreate ? (
                             <div className="text-[10px] text-slate-500 truncate">{supplier.address}</div>
                           )}
                         </div>
-                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold whitespace-nowrap ${
-                          supplier.user_active
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}>
+                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold whitespace-nowrap ${supplier.user_active
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                          }`}>
                           {supplier.user_active ? "Active" : "Inactive"}
                         </span>
                       </div>
@@ -2607,7 +2621,7 @@ const actions = canCreate ? (
                         {supplier.supplier_number}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 cursor-pointer" onClick={() => openSupplierProfile(supplier)}>
-                          <div className="text-sm text-slate-700">{supplier.user_email}</div>
+                        <div className="text-sm text-slate-700">{supplier.user_email}</div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 cursor-pointer" onClick={() => openSupplierProfile(supplier)}>
                         <div className="text-sm text-slate-700">
@@ -2619,11 +2633,11 @@ const actions = canCreate ? (
                           <div className="flex flex-wrap gap-2 text-xs">
                             {supplier.categories.map((category) => (
                               <span
-                      key={`${category.id}-${category.category_type}`}
-                      className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary"
-                    >
-                      {category.category_type === "primary" ? "Primary" : "Secondary"}{" \u00B7 "}{category.name}
-                    </span>
+                                key={`${category.id}-${category.category_type}`}
+                                className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary"
+                              >
+                                {category.category_type === "primary" ? "Primary" : "Secondary"}{" \u00B7 "}{category.name}
+                              </span>
                             ))}
                           </div>
                         ) : (
@@ -2636,12 +2650,11 @@ const actions = canCreate ? (
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 cursor-pointer" onClick={() => openSupplierProfile(supplier)}>
-                          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                            supplier.user_active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${supplier.user_active
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
                           }`}>
-                            {supplier.user_active ? "Active" : "Inactive"}
+                          {supplier.user_active ? "Active" : "Inactive"}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
@@ -2657,15 +2670,15 @@ const actions = canCreate ? (
                       </td>
                     </tr>
                   ))}
-                    {suppliersToDisplay.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="px-6 py-8 text-center text-sm text-slate-600">
-                          {searchScope === "suppliers" && normalizedSearch.length > 0
-                            ? "No suppliers match your search."
-                            : "No suppliers available yet."}
-                        </td>
-                      </tr>
-                    )}
+                  {suppliersToDisplay.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-8 text-center text-sm text-slate-600">
+                        {searchScope === "suppliers" && normalizedSearch.length > 0
+                          ? "No suppliers match your search."
+                          : "No suppliers available yet."}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
               {suppliers.length === 0 && (
@@ -2741,8 +2754,8 @@ const actions = canCreate ? (
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {categoriesToDisplay.map((category) => (
-                    <tr 
-                      key={category.id} 
+                    <tr
+                      key={category.id}
                       className="hover:bg-slate-50 cursor-pointer"
                       onClick={() => loadCategoryDetails(category.id)}
                     >
@@ -2820,9 +2833,8 @@ const actions = canCreate ? (
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-sm font-semibold">{request.title}</span>
                             <span
-                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                                requestStatusStyles[request.status] ?? "bg-slate-200 text-slate-700"
-                              }`}
+                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${requestStatusStyles[request.status] ?? "bg-slate-200 text-slate-700"
+                                }`}
                             >
                               {requestStatusLabels[request.status] ?? request.status}
                             </span>
@@ -2882,9 +2894,8 @@ const actions = canCreate ? (
                 </div>
                 {selectedRequest ? (
                   <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                      requestStatusStyles[selectedRequest.status] ?? "bg-slate-200 text-slate-700"
-                    }`}
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${requestStatusStyles[selectedRequest.status] ?? "bg-slate-200 text-slate-700"
+                      }`}
                   >
                     {requestStatusLabels[selectedRequest.status] ?? selectedRequest.status}
                   </span>
@@ -2903,7 +2914,7 @@ const actions = canCreate ? (
                     <div>
                       <p className="text-xs uppercase text-slate-500">Needed By</p>
                       <p className="mt-1 text-sm font-medium text-slate-800">
-                        {new Date(selectedRequest.needed_by).toLocaleString()}
+                        {new Date(selectedRequest.needed_by).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
@@ -2956,7 +2967,7 @@ const actions = canCreate ? (
                         {selectedRequest.documents.slice(0, 4).map((document) => (
                           <a
                             key={document.id}
-                            href={getRequestDocumentDownloadUrl(selectedRequest.id)}
+                            href={getRequestDocumentDownloadUrl(selectedRequest.id, document.id)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-between rounded border border-slate-200 px-3 py-2 text-xs text-slate-700 transition hover:border-secondary hover:text-secondary"
@@ -3022,25 +3033,24 @@ const actions = canCreate ? (
                       type="button"
                       onClick={() => openInviteModal(selectedRequest)}
                       disabled={submitting || !canSendToSuppliers}
-                      className={`rounded border px-4 py-2 text-xs font-semibold uppercase disabled:cursor-not-allowed disabled:opacity-50 ${
-                        canSendToSuppliers 
-                          ? 'border-emerald-500 text-emerald-600 hover:bg-emerald-50' 
-                          : 'border-slate-300 text-slate-400 bg-slate-50'
-                      }`}
+                      className={`rounded border px-4 py-2 text-xs font-semibold uppercase disabled:cursor-not-allowed disabled:opacity-50 ${canSendToSuppliers
+                        ? 'border-emerald-500 text-emerald-600 hover:bg-emerald-50'
+                        : 'border-slate-300 text-slate-400 bg-slate-50'
+                        }`}
                       title={!canSendToSuppliers ? "Only Procurement users can send to suppliers" : ""}
                     >
                       Send to Suppliers
                     </button>
                   ) : null}
-                  {selectedRequest?.rfq_invited_at && 
-                   (selectedRequest?.status === "finance_approved" || selectedRequest?.status === "rfq_issued") && (
-                    <div className="mt-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2">
-                      <p className="text-xs text-blue-700">
-                        ✓ Invitations already sent to suppliers on{" "}
-                        {new Date(selectedRequest.rfq_invited_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
+                  {selectedRequest?.rfq_invited_at &&
+                    (selectedRequest?.status === "finance_approved" || selectedRequest?.status === "rfq_issued") && (
+                      <div className="mt-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2">
+                        <p className="text-xs text-blue-700">
+                          ✓ Invitations already sent to suppliers on{" "}
+                          {new Date(selectedRequest.rfq_invited_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
                 </div>
               ) : (
                 <p className="mt-4 text-sm text-slate-600">
@@ -3121,14 +3131,14 @@ const actions = canCreate ? (
                           {imageDocuments.map((document) => (
                             <a
                               key={document.id}
-                              href={getRequestDocumentDownloadUrl(selectedRequest.id)}
+                              href={getRequestDocumentDownloadUrl(selectedRequest.id, document.id)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="group overflow-hidden rounded-lg border border-slate-200 shadow-sm transition hover:border-secondary hover:shadow-md"
                             >
                               <div className="aspect-video w-full bg-slate-100">
                                 <img
-                                  src={getRequestDocumentDownloadUrl(selectedRequest.id)}
+                                  src={getRequestDocumentDownloadUrl(selectedRequest.id, document.id)}
                                   alt={document.original_filename}
                                   className="h-full w-full object-cover transition group-hover:scale-105"
                                 />
@@ -3156,7 +3166,7 @@ const actions = canCreate ? (
                                 {document.original_filename}
                               </span>
                               <a
-                                href={getRequestDocumentDownloadUrl(selectedRequest.id)}
+                                href={getRequestDocumentDownloadUrl(selectedRequest.id, document.id)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="rounded border border-primary px-3 py-1 font-semibold uppercase text-primary hover:bg-primary/10"
@@ -3192,7 +3202,7 @@ const actions = canCreate ? (
               <div>
                 <label className="text-sm font-medium text-slate-700">Needed By</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   value={approvalForm.needed_by}
                   onChange={(event) =>
                     setApprovalForm((prev) => ({ ...prev, needed_by: event.target.value }))
@@ -3285,12 +3295,12 @@ const actions = canCreate ? (
               <div>
                 <label className="text-sm font-medium text-slate-700">RFQ Deadline</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   value={inviteForm.rfq_deadline}
                   onChange={(event) =>
                     setInviteForm((prev) => ({ ...prev, rfq_deadline: event.target.value }))
                   }
-                  min={getCurrentLocal(60000)}
+                  min={new Date().toISOString().split('T')[0]}
                   required
                   disabled={submitting}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-secondary focus:outline-none"
@@ -3507,7 +3517,7 @@ const actions = canCreate ? (
             />
             <p className="mt-1 text-xs text-slate-500">Deadline must be in the future</p>
           </div>
-          
+
           {/* Supplier selection - only for Procurement and SuperAdmin */}
           {/* Procurement Officers create drafts without selecting suppliers */}
           {!isProcurementOfficer && (
@@ -3517,74 +3527,72 @@ const actions = canCreate ? (
                 Recommended suppliers are pre-selected based on the RFQ category. Adjust the list before publishing.
               </p>
               <div className="mt-3 space-y-3">
-              <div>
-                <p className="text-xs font-semibold uppercase text-slate-500">Recommended</p>
-                {createRfqBuckets.recommended.length ? (
-                  <div className="mt-2 space-y-2">
-                    {createRfqBuckets.recommended.map((supplier) => {
-                      const checked = rfqSelectedSupplierIds.includes(supplier.id);
-                      return (
-                        <label
-                          key={supplier.id}
-                          className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
-                            checked ? "border-secondary bg-secondary/10 text-secondary" : "border-slate-200"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            disabled={submitting}
-                            onChange={() => toggleCreateSupplierSelection(supplier.id)}
-                            className="mt-1 h-4 w-4"
-                          />
-                          <div className="text-slate-800">
-                            <span className="font-medium">{supplier.company_name}</span>
-                            <span className="block text-xs font-mono text-slate-600">{supplier.supplier_number}</span>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="mt-2 text-xs text-slate-600">No recommended suppliers for this category.</p>
-                )}
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase text-slate-500">Other Suppliers</p>
-                {createRfqBuckets.others.length ? (
-                  <div className="mt-2 space-y-2">
-                    {createRfqBuckets.others.map((supplier) => {
-                      const checked = rfqSelectedSupplierIds.includes(supplier.id);
-                      return (
-                        <label
-                          key={supplier.id}
-                          className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
-                            checked ? "border-secondary bg-secondary/10 text-secondary" : "border-slate-200"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            disabled={submitting}
-                            onChange={() => toggleCreateSupplierSelection(supplier.id)}
-                            className="mt-1 h-4 w-4"
-                          />
-                          <div className="text-slate-800">
-                            <span className="font-medium">{supplier.company_name}</span>
-                            <span className="block text-xs font-mono text-slate-600">{supplier.supplier_number}</span>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="mt-2 text-xs text-slate-600">No additional suppliers available.</p>
-                )}
+                <div>
+                  <p className="text-xs font-semibold uppercase text-slate-500">Recommended</p>
+                  {createRfqBuckets.recommended.length ? (
+                    <div className="mt-2 space-y-2">
+                      {createRfqBuckets.recommended.map((supplier) => {
+                        const checked = rfqSelectedSupplierIds.includes(supplier.id);
+                        return (
+                          <label
+                            key={supplier.id}
+                            className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${checked ? "border-secondary bg-secondary/10 text-secondary" : "border-slate-200"
+                              }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={submitting}
+                              onChange={() => toggleCreateSupplierSelection(supplier.id)}
+                              className="mt-1 h-4 w-4"
+                            />
+                            <div className="text-slate-800">
+                              <span className="font-medium">{supplier.company_name}</span>
+                              <span className="block text-xs font-mono text-slate-600">{supplier.supplier_number}</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-slate-600">No recommended suppliers for this category.</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase text-slate-500">Other Suppliers</p>
+                  {createRfqBuckets.others.length ? (
+                    <div className="mt-2 space-y-2">
+                      {createRfqBuckets.others.map((supplier) => {
+                        const checked = rfqSelectedSupplierIds.includes(supplier.id);
+                        return (
+                          <label
+                            key={supplier.id}
+                            className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${checked ? "border-secondary bg-secondary/10 text-secondary" : "border-slate-200"
+                              }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={submitting}
+                              onChange={() => toggleCreateSupplierSelection(supplier.id)}
+                              className="mt-1 h-4 w-4"
+                            />
+                            <div className="text-slate-800">
+                              <span className="font-medium">{supplier.company_name}</span>
+                              <span className="block text-xs font-mono text-slate-600">{supplier.supplier_number}</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-slate-600">No additional suppliers available.</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
           )}
-          
+
           {/* Procurement Officers see a note about draft creation */}
           {isProcurementOfficer && (
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
@@ -3593,7 +3601,7 @@ const actions = canCreate ? (
               </p>
             </div>
           )}
-          
+
           <div>
             <label className="text-sm font-medium text-slate-700">Supporting Documents</label>
             <input
@@ -3784,9 +3792,8 @@ const actions = canCreate ? (
                   return (
                     <label
                       key={category.id}
-                      className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
-                        checked ? "border-secondary bg-secondary/10 text-secondary" : "border-slate-200"
-                      }`}
+                      className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${checked ? "border-secondary bg-secondary/10 text-secondary" : "border-slate-200"
+                        }`}
                     >
                       <input
                         type="checkbox"
@@ -3891,7 +3898,7 @@ const actions = canCreate ? (
                 <label className="text-xs font-medium uppercase text-slate-500">Description</label>
                 <p className="mt-1 text-sm text-slate-800">{selectedRfq.description}</p>
               </div>
-              
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-xs font-medium uppercase text-slate-500">Category</label>
@@ -3912,13 +3919,12 @@ const actions = canCreate ? (
                 <div>
                   <label className="text-xs font-medium uppercase text-slate-500">Status</label>
                   <p className="mt-1">
-                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                      selectedRfq.status === "open"
-                        ? "bg-green-100 text-green-800"
-                        : selectedRfq.status === "awarded"
+                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${selectedRfq.status === "open"
+                      ? "bg-green-100 text-green-800"
+                      : selectedRfq.status === "awarded"
                         ? "bg-indigo-100 text-indigo-700"
                         : "bg-slate-200 text-slate-700"
-                    }`}>
+                      }`}>
                       {selectedRfq.status.toUpperCase()}
                     </span>
                   </p>
@@ -3958,13 +3964,12 @@ const actions = canCreate ? (
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          quotation.status === "approved"
-                            ? "bg-green-100 text-green-800"
-                            : quotation.status === "rejected"
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${quotation.status === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : quotation.status === "rejected"
                             ? "bg-red-100 text-red-800"
                             : "bg-yellow-100 text-yellow-800"
-                        }`}>
+                          }`}>
                           {quotation.status}
                         </span>
                         {canApprove && quotation.status === "pending" && !selectedRfqHasApprovedQuotation && (
@@ -4016,16 +4021,16 @@ const actions = canCreate ? (
                 <div>
                   <label className="text-xs font-medium uppercase text-slate-500">Created</label>
                   <p className="mt-1 text-sm font-medium text-slate-800">
-                    {selectedCategory.created_at 
-                      ? new Date(selectedCategory.created_at).toLocaleDateString() 
+                    {selectedCategory.created_at
+                      ? new Date(selectedCategory.created_at).toLocaleDateString()
                       : "-"}
                   </p>
                 </div>
                 <div>
                   <label className="text-xs font-medium uppercase text-slate-500">Last Updated</label>
                   <p className="mt-1 text-sm font-medium text-slate-800">
-                    {selectedCategory.updated_at 
-                      ? new Date(selectedCategory.updated_at).toLocaleDateString() 
+                    {selectedCategory.updated_at
+                      ? new Date(selectedCategory.updated_at).toLocaleDateString()
                       : "-"}
                   </p>
                 </div>
@@ -4066,20 +4071,19 @@ const actions = canCreate ? (
                     >
                       <div className="flex-1">
                         <div className="text-xs font-mono text-slate-600">{rfq.rfq_number}</div>
-<div className="text-sm font-medium text-slate-900">{rfq.title}</div>
+                        <div className="text-sm font-medium text-slate-900">{rfq.title}</div>
                         <div className="mt-1 flex items-center gap-4 text-xs text-slate-600">
                           <span>Budget: {formatCurrency(rfq.budget, rfq.currency)}</span>
                           <span>Deadline: {new Date(rfq.deadline).toLocaleDateString()}</span>
                         </div>
                       </div>
                       <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          rfq.status === "open"
-                            ? "bg-green-100 text-green-800"
-                            : rfq.status === "awarded"
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${rfq.status === "open"
+                          ? "bg-green-100 text-green-800"
+                          : rfq.status === "awarded"
                             ? "bg-indigo-100 text-indigo-700"
                             : "bg-slate-200 text-slate-700"
-                        }`}
+                          }`}
                       >
                         {rfq.status.toUpperCase()}
                       </span>
@@ -4114,21 +4118,19 @@ const actions = canCreate ? (
             <div className="flex gap-2 border-b border-slate-200">
               <button
                 onClick={() => setMessageViewMode("sent")}
-                className={`px-4 py-2 text-sm font-medium transition ${
-                  messageViewMode === "sent"
-                    ? "border-b-2 border-primary text-primary"
-                    : "text-slate-600 hover:text-slate-800"
-                }`}
+                className={`px-4 py-2 text-sm font-medium transition ${messageViewMode === "sent"
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-slate-600 hover:text-slate-800"
+                  }`}
               >
                 Sent ({sentMessages.length})
               </button>
               <button
                 onClick={() => setMessageViewMode("received")}
-                className={`px-4 py-2 text-sm font-medium transition ${
-                  messageViewMode === "received"
-                    ? "border-b-2 border-primary text-primary"
-                    : "text-slate-600 hover:text-slate-800"
-                }`}
+                className={`px-4 py-2 text-sm font-medium transition ${messageViewMode === "received"
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-slate-600 hover:text-slate-800"
+                  }`}
               >
                 Received ({receivedMessages.length})
               </button>
@@ -4148,7 +4150,7 @@ const actions = canCreate ? (
                           {message.subject || "No subject"}
                         </span>
                         <span className="text-xs text-slate-600">
-                          {new Date(message.created_at).toLocaleString()}
+                          {new Date(message.created_at).toLocaleDateString()}
                         </span>
                       </div>
                       <p className="mt-2 text-xs text-slate-600">
@@ -4180,7 +4182,7 @@ const actions = canCreate ? (
                           </span>
                         )}
                         <span className="text-xs text-slate-600">
-                          {new Date(message.created_at).toLocaleString()}
+                          {new Date(message.created_at).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
@@ -4228,7 +4230,7 @@ const actions = canCreate ? (
                     )}
                     <p>
                       <span className="font-medium">Date:</span>{" "}
-                      {new Date(selectedMessageInCenter.created_at).toLocaleString()}
+                      {new Date(selectedMessageInCenter.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -4259,7 +4261,7 @@ const actions = canCreate ? (
                   className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
                   required
                 />
-                
+
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
@@ -4310,7 +4312,7 @@ const actions = canCreate ? (
                 placeholder="Enter message subject..."
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-slate-800">Message</label>
               <textarea
@@ -4322,7 +4324,7 @@ const actions = canCreate ? (
                 placeholder="Type your message..."
               />
             </div>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
@@ -4391,7 +4393,7 @@ const actions = canCreate ? (
                       key={`${category.id}-${category.category_type}`}
                       className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
                     >
-                                            {category.category_type === "primary" ? "Primary" : "Secondary"}{" \u00B7 "} {category.name}
+                      {category.category_type === "primary" ? "Primary" : "Secondary"}{" \u00B7 "} {category.name}
                     </span>
                   ))}
                 </div>
@@ -4415,11 +4417,10 @@ const actions = canCreate ? (
               <div>
                 <p className="text-xs font-semibold uppercase text-slate-500">Account Status</p>
                 <p className="mt-1">
-                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                    selectedSupplier.user_active
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}>
+                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${selectedSupplier.user_active
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                    }`}>
                     {selectedSupplier.user_active ? "Active" : "Inactive"}
                   </span>
                 </p>
@@ -4658,11 +4659,11 @@ const actions = canCreate ? (
                           {contract.delivered_at && new Date(contract.delivered_at).toLocaleDateString()}
                         </span>
                       </div>
-                      
+
                       <h3 className="text-sm sm:text-lg font-semibold text-primary truncate">
                         {(contract as any).rfq_title || "Contract"}
                       </h3>
-                      
+
                       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
                         <div>
                           <span className="text-slate-600">RFQ Number:</span>
@@ -4714,7 +4715,7 @@ const actions = canCreate ? (
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row">
                       {contract.delivery_note_path && (
                         <button
@@ -4766,13 +4767,13 @@ const actions = canCreate ? (
         <div className="space-y-4">
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
             <p className="text-sm text-amber-800">
-              {user?.role?.toLowerCase() === "procurement" 
+              {user?.role?.toLowerCase() === "procurement"
                 ? "⚠️ The selected quotation exceeds the finance-approved budget. Submit a request to Finance for approval."
                 : "⚠️ The selected quotation exceeds the finance-approved budget. Please provide a justification for approving this quotation."
               }
             </p>
           </div>
-          
+
           {pendingApproval && selectedRfq && (
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
@@ -4787,7 +4788,7 @@ const actions = canCreate ? (
                   const quotationTotal = baseAmount + taxAmount;
                   const approvedBudget = Number(selectedRfq.budget) || 0;
                   const difference = quotationTotal - approvedBudget;
-                  
+
                   return (
                     <>
                       <div className="flex justify-between">
@@ -4815,7 +4816,7 @@ const actions = canCreate ? (
               })()}
             </div>
           )}
-          
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Justification for Budget Override <span className="text-rose-500">*</span>
@@ -4829,7 +4830,7 @@ const actions = canCreate ? (
               required
             />
           </div>
-          
+
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
             <button
               onClick={() => {
@@ -4883,7 +4884,7 @@ const actions = canCreate ? (
               📦 Mark this approved contract as delivered by providing the delivery date and uploading the stamped delivery note from the supplier.
             </p>
           </div>
-          
+
           {deliveryQuotation && selectedRfq && (
             <div className="space-y-2 text-sm bg-slate-50 rounded-lg p-3">
               {(() => {
@@ -4912,7 +4913,7 @@ const actions = canCreate ? (
               })()}
             </div>
           )}
-          
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Delivery Date <span className="text-rose-500">*</span>
@@ -4932,7 +4933,7 @@ const actions = canCreate ? (
               Delivery date must be after the approval date
             </p>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Delivery Note (Stamped) <span className="text-rose-500">*</span>
@@ -4948,7 +4949,7 @@ const actions = canCreate ? (
               Upload the stamped delivery note from the supplier (PDF, JPG, or PNG)
             </p>
           </div>
-          
+
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
             <button
               onClick={() => {
@@ -4973,9 +4974,9 @@ const actions = canCreate ? (
       </Modal>
 
       {/* Approve Draft RFQ Modal - Supplier Selection */}
-      <Modal 
-        open={isApproveRfqModalOpen} 
-        onClose={closeApproveRfqModal} 
+      <Modal
+        open={isApproveRfqModalOpen}
+        onClose={closeApproveRfqModal}
         title="Approve Draft RFQ & Select Suppliers"
       >
         {rfqToApprove && (
@@ -5000,126 +5001,126 @@ const actions = canCreate ? (
               <h4 className="text-sm font-semibold text-slate-700 mb-3">
                 Select Suppliers to Invite ({selectedSupplierIdsForApproval.length} selected)
               </h4>
-              
+
               {suppliers.length > 0 ? (
                 <div className="max-h-96 overflow-y-auto border border-slate-200 rounded-lg">
                   {/* Suppliers in matching category */}
                   {suppliers
-                    .filter(supplier => 
+                    .filter(supplier =>
                       supplier.categories?.some(cat => cat.name === rfqToApprove.category)
                     ).length > 0 && (
-                    <>
-                      <div className="sticky top-0 bg-primary/5 px-3 py-2 border-b border-slate-200">
-                        <p className="text-xs font-semibold text-primary uppercase">
-                          Matching Category: {rfqToApprove.category}
-                        </p>
-                      </div>
-                      {suppliers
-                        .filter(supplier => 
-                          supplier.categories?.some(cat => cat.name === rfqToApprove.category)
-                        )
-                        .map((supplier) => (
-                          <div
-                            key={supplier.id}
-                            className="flex items-start gap-3 p-3 border-b border-slate-100 hover:bg-slate-50"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedSupplierIdsForApproval.includes(supplier.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedSupplierIdsForApproval([...selectedSupplierIdsForApproval, supplier.id]);
-                                } else {
-                                  setSelectedSupplierIdsForApproval(
-                                    selectedSupplierIdsForApproval.filter((id) => id !== supplier.id)
-                                  );
-                                }
-                              }}
-                              className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                            />
-                            <div className="flex-1">
-                              <div className="font-medium text-slate-900">{supplier.company_name}</div>
-                              <div className="text-xs text-slate-600">
-                                {supplier.supplier_number && `#${supplier.supplier_number} • `}
-                                {supplier.contact_email}
-                              </div>
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {supplier.categories?.map((cat) => (
-                                  <span
-                                    key={cat.id}
-                                    className={clsx(
-                                      "inline-block rounded-full px-2 py-0.5 text-xs font-medium",
-                                      cat.name === rfqToApprove.category
-                                        ? "bg-primary/10 text-primary"
-                                        : "bg-slate-100 text-slate-600"
-                                    )}
-                                  >
-                                    {cat.name}
-                                  </span>
-                                ))}
+                      <>
+                        <div className="sticky top-0 bg-primary/5 px-3 py-2 border-b border-slate-200">
+                          <p className="text-xs font-semibold text-primary uppercase">
+                            Matching Category: {rfqToApprove.category}
+                          </p>
+                        </div>
+                        {suppliers
+                          .filter(supplier =>
+                            supplier.categories?.some(cat => cat.name === rfqToApprove.category)
+                          )
+                          .map((supplier) => (
+                            <div
+                              key={supplier.id}
+                              className="flex items-start gap-3 p-3 border-b border-slate-100 hover:bg-slate-50"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedSupplierIdsForApproval.includes(supplier.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedSupplierIdsForApproval([...selectedSupplierIdsForApproval, supplier.id]);
+                                  } else {
+                                    setSelectedSupplierIdsForApproval(
+                                      selectedSupplierIdsForApproval.filter((id) => id !== supplier.id)
+                                    );
+                                  }
+                                }}
+                                className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                              />
+                              <div className="flex-1">
+                                <div className="font-medium text-slate-900">{supplier.company_name}</div>
+                                <div className="text-xs text-slate-600">
+                                  {supplier.supplier_number && `#${supplier.supplier_number} • `}
+                                  {supplier.contact_email}
+                                </div>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {supplier.categories?.map((cat) => (
+                                    <span
+                                      key={cat.id}
+                                      className={clsx(
+                                        "inline-block rounded-full px-2 py-0.5 text-xs font-medium",
+                                        cat.name === rfqToApprove.category
+                                          ? "bg-primary/10 text-primary"
+                                          : "bg-slate-100 text-slate-600"
+                                      )}
+                                    >
+                                      {cat.name}
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                    </>
-                  )}
-                  
+                          ))}
+                      </>
+                    )}
+
                   {/* Suppliers from other categories */}
                   {suppliers
-                    .filter(supplier => 
+                    .filter(supplier =>
                       !supplier.categories?.some(cat => cat.name === rfqToApprove.category)
                     ).length > 0 && (
-                    <>
-                      <div className="sticky top-0 bg-slate-50 px-3 py-2 border-b border-slate-200">
-                        <p className="text-xs font-semibold text-slate-600 uppercase">
-                          Other Categories
-                        </p>
-                      </div>
-                      {suppliers
-                        .filter(supplier => 
-                          !supplier.categories?.some(cat => cat.name === rfqToApprove.category)
-                        )
-                        .map((supplier) => (
-                          <div
-                            key={supplier.id}
-                            className="flex items-start gap-3 p-3 border-b border-slate-100 hover:bg-slate-50"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedSupplierIdsForApproval.includes(supplier.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedSupplierIdsForApproval([...selectedSupplierIdsForApproval, supplier.id]);
-                                } else {
-                                  setSelectedSupplierIdsForApproval(
-                                    selectedSupplierIdsForApproval.filter((id) => id !== supplier.id)
-                                  );
-                                }
-                              }}
-                              className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                            />
-                            <div className="flex-1">
-                              <div className="font-medium text-slate-900">{supplier.company_name}</div>
-                              <div className="text-xs text-slate-600">
-                                {supplier.supplier_number && `#${supplier.supplier_number} • `}
-                                {supplier.contact_email}
-                              </div>
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {supplier.categories?.map((cat) => (
-                                  <span
-                                    key={cat.id}
-                                    className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600"
-                                  >
-                                    {cat.name}
-                                  </span>
-                                ))}
+                      <>
+                        <div className="sticky top-0 bg-slate-50 px-3 py-2 border-b border-slate-200">
+                          <p className="text-xs font-semibold text-slate-600 uppercase">
+                            Other Categories
+                          </p>
+                        </div>
+                        {suppliers
+                          .filter(supplier =>
+                            !supplier.categories?.some(cat => cat.name === rfqToApprove.category)
+                          )
+                          .map((supplier) => (
+                            <div
+                              key={supplier.id}
+                              className="flex items-start gap-3 p-3 border-b border-slate-100 hover:bg-slate-50"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedSupplierIdsForApproval.includes(supplier.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedSupplierIdsForApproval([...selectedSupplierIdsForApproval, supplier.id]);
+                                  } else {
+                                    setSelectedSupplierIdsForApproval(
+                                      selectedSupplierIdsForApproval.filter((id) => id !== supplier.id)
+                                    );
+                                  }
+                                }}
+                                className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                              />
+                              <div className="flex-1">
+                                <div className="font-medium text-slate-900">{supplier.company_name}</div>
+                                <div className="text-xs text-slate-600">
+                                  {supplier.supplier_number && `#${supplier.supplier_number} • `}
+                                  {supplier.contact_email}
+                                </div>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {supplier.categories?.map((cat) => (
+                                    <span
+                                      key={cat.id}
+                                      className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600"
+                                    >
+                                      {cat.name}
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                    </>
-                  )}
-                  
+                          ))}
+                      </>
+                    )}
+
                   {suppliers.length === 0 && (
                     <div className="p-8 text-center text-sm text-slate-600">
                       No suppliers available.
@@ -5149,7 +5150,7 @@ const actions = canCreate ? (
               >
                 Select All in Category
               </button>
-              
+
               <div className="flex gap-3">
                 <button
                   type="button"

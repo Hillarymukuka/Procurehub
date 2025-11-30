@@ -2,6 +2,7 @@
 
 import logging
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from typing import List, Optional, cast
 
@@ -1073,16 +1074,8 @@ def invite_suppliers(
             detail="At least one supplier must be selected for invitations",
         )
 
-    deadline = invite_in.rfq_deadline
-    if deadline.tzinfo:
-        deadline_utc = deadline.astimezone(timezone.utc)
-    else:
-        deadline_utc = deadline.replace(tzinfo=timezone.utc)
-    if deadline_utc <= datetime.now(timezone.utc):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="RFQ deadline must be in the future",
-        )
+    # Use the provided deadline directly
+    deadline_utc = invite_in.rfq_deadline
 
     suppliers = (
         db.query(SupplierProfile)
@@ -1165,6 +1158,10 @@ def invite_suppliers(
     db.refresh(rfq)
 
     if request_obj.requester and request_obj.requester.email:
+        # Convert deadline to Lusaka time for email display
+        lusaka_tz = ZoneInfo("Africa/Lusaka")
+        deadline_display = deadline_utc.astimezone(lusaka_tz)
+        
         background_tasks.add_task(
             email_service.send_email,
             [request_obj.requester.email],
@@ -1173,7 +1170,7 @@ def invite_suppliers(
                 f"Hello {request_obj.requester.full_name or ''},\n\n"
                 f"Procurement has sent RFQ invitations to selected suppliers for your request "
                 f"\"{request_obj.title}\". Suppliers have been asked to respond by "
-                f"{deadline_utc:%Y-%m-%d %H:%M UTC}.\n\n"
+                f"{deadline_display:%Y-%m-%d %H:%M} (CAT).\n\n"
                 "You'll be notified when quotations start arriving."
             ),
         )
@@ -1228,32 +1225,30 @@ def upload_request_documents(
     return _build_request_response(request_obj)
 
 
-@router.get("/{request_id}/document")
-def download_request_document(
+@router.get("/{request_id}/documents/{document_id}")
+def download_specific_request_document(
     request_id: int,
+    document_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    """Download the first document attached to a request with authorization check."""
+    """Download a specific document attached to a request."""
     from pathlib import Path
     from ..config import get_settings
     
     settings = get_settings()
     request_obj = _get_request_or_404(db, request_id)
     
-    # Authorization check - verify user has access to this request
+    # Authorization check
     user_role = _user_role(current_user)
     
-    # SuperAdmin and Procurement can access all documents
     if user_role not in [UserRole.superadmin, UserRole.procurement, UserRole.procurement_officer]:
-        # Requesters can only access their own request documents
         if user_role == UserRole.requester:
             if request_obj.requester_id != current_user.id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Not authorized to access this document"
                 )
-        # HOD can access documents from their department
         elif user_role == UserRole.head_of_department:
             if request_obj.department_id:
                 department = db.query(Department).filter(
@@ -1276,31 +1271,64 @@ def download_request_document(
                 detail="Not authorized to access this document"
             )
     
-    # Get the first document
     document = db.query(RequestDocument).filter(
+        RequestDocument.id == document_id,
         RequestDocument.request_id == request_id
     ).first()
     
     if not document:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No document found for this request"
+            detail="Document not found"
         )
     
     # Build the full file path
-    file_path = settings.resolved_upload_dir / document.file_path
+    # Handle both relative and absolute paths stored in DB
+    file_path_str = document.file_path
+    if ":" in file_path_str and "\\" in file_path_str: # Looks like absolute Windows path
+         file_path = Path(file_path_str)
+    else:
+         file_path = settings.resolved_upload_dir / file_path_str
     
     if not file_path.exists():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document file not found on server"
-        )
+        # Try alternative path resolution if default fails
+        # Sometimes paths are stored with forward slashes but we are on Windows
+        file_path = settings.resolved_upload_dir / file_path_str.replace("/", "\\")
+        
+        if not file_path.exists():
+             raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Document file not found on server"
+            )
     
     return FileResponse(
         path=str(file_path),
         filename=document.original_filename,
         media_type="application/octet-stream",
         headers={"Content-Disposition": f'attachment; filename="{document.original_filename}"'}
+    )
+
+
+@router.get("/{request_id}/document")
+def download_request_document(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Download the first document attached to a request (Legacy)."""
+    # Redirect to the first document if available
+    document = db.query(RequestDocument).filter(
+        RequestDocument.request_id == request_id
+    ).first()
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="No documents found")
+        
+    return download_specific_request_document(
+        request_id=request_id,
+        document_id=document.id,
+        db=db,
+        current_user=current_user
     )
 
 

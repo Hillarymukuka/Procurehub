@@ -173,7 +173,7 @@ def rfq_invitation_email(
     app_url: str = "http://localhost:5173"
 ) -> str:
     """Email template for RFQ invitation to suppliers."""
-    deadline_str = deadline.strftime("%B %d, %Y at %I:%M %p")
+    deadline_str = deadline.strftime("%B %d, %Y")
     
     content = f"""
         <div class="header">

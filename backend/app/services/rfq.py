@@ -30,9 +30,9 @@ def generate_rfq_number(rfq_id: int, reference_date: datetime | None = None) -> 
 
 def close_expired_rfqs(db: Session) -> int:
     """Close RFQs whose deadlines (date and time) have passed and unlock responses."""
-    # Use Africa/Cairo timezone consistently
-    cairo_tz = ZoneInfo("Africa/Cairo")
-    now_cairo = datetime.now(cairo_tz)
+    # Use Africa/Lusaka timezone consistently
+    lusaka_tz = ZoneInfo("Africa/Lusaka")
+    now_lusaka = datetime.now(lusaka_tz)
     
     open_rfqs: list[RFQ] = (
         db.query(RFQ)
@@ -48,13 +48,14 @@ def close_expired_rfqs(db: Session) -> int:
         
         # Ensure deadline is timezone-aware for proper comparison
         if deadline.tzinfo is None:
-            # If deadline has no timezone info, assume it's Africa/Cairo time
-            deadline_cairo = deadline.replace(tzinfo=cairo_tz)
+            # If deadline has no timezone info, it's UTC (from DB)
+            deadline_utc = deadline.replace(tzinfo=timezone.utc)
+            deadline_lusaka = deadline_utc.astimezone(lusaka_tz)
         else:
-            # Convert to Africa/Cairo for comparison
-            deadline_cairo = deadline.astimezone(cairo_tz)
+            # Convert to Africa/Lusaka for comparison
+            deadline_lusaka = deadline.astimezone(lusaka_tz)
             
-        if deadline_cairo <= now_cairo:
+        if deadline_lusaka <= now_lusaka:
             rfq.status = RFQStatus.closed
             # Unlock responses when deadline passes so procurement can see quotations
             if getattr(rfq, "response_locked", False):
@@ -125,13 +126,22 @@ def create_invitations(
                 invited_by=invited_by_name,
             )
             
+            # Convert deadline to Lusaka time for email display
+            lusaka_tz = ZoneInfo("Africa/Lusaka")
+            if rfq_deadline.tzinfo is None:
+                # Naive from DB = UTC
+                deadline_utc = rfq_deadline.replace(tzinfo=timezone.utc)
+                deadline_display = deadline_utc.astimezone(lusaka_tz)
+            else:
+                deadline_display = rfq_deadline.astimezone(lusaka_tz)
+
             # Plain text fallback
             plain_body = (
                 f"Dear {supplier_name},\n\n"
                 f"You have been invited to submit a quotation for RFQ '{rfq_title}' "
                 f"in category '{rfq_category}'.\n\n"
                 f"Description: {rfq_description}\n\n"
-                f"Deadline: {rfq_deadline:%B %d, %Y at %I:%M %p}\n\n"
+                f"Deadline: {deadline_display:%B %d, %Y} (CAT)\n\n"
                 f"Please log in to ProcuraHub to view full details and submit your quotation.\n\n"
                 f"Best regards,\nProcuraHub Team"
             )

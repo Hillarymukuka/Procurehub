@@ -46,20 +46,24 @@ settings = get_settings()
 
 
 def _normalize_deadline(deadline: datetime) -> datetime:
-    """Keep deadline as Africa/Cairo time with timezone info."""
-    cairo_tz = ZoneInfo("Africa/Cairo")
-    if deadline.tzinfo:
-        # Convert to Africa/Cairo if it has a different timezone
-        return deadline.astimezone(cairo_tz)
-    # If no timezone, assume it's Africa/Cairo time
-    return deadline.replace(tzinfo=cairo_tz)
+    """
+    Convert incoming deadline (assumed to be in Africa/Lusaka) to UTC.
+    """
+    lusaka_tz = ZoneInfo("Africa/Lusaka")
+    
+    # If naive, assume it's Africa/Lusaka
+    if deadline.tzinfo is None:
+        deadline = deadline.replace(tzinfo=lusaka_tz)
+    
+    # Convert to UTC for storage
+    return deadline.astimezone(timezone.utc)
 
 
 def _ensure_deadline_in_future(deadline: datetime) -> datetime:
     normalized = _normalize_deadline(deadline)
-    cairo_tz = ZoneInfo("Africa/Cairo")
-    now_cairo = datetime.now(cairo_tz)
-    if normalized <= now_cairo:
+    now_utc = datetime.now(timezone.utc)
+    
+    if normalized <= now_utc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Deadline must be in the future",
@@ -116,7 +120,7 @@ async def _extract_procurement_payload(request: Request) -> tuple[ProcurementRFQ
             "category": form.get("category"),
             "budget": form.get("budget"),
             "currency": form.get("currency"),
-            "deadline": form.get("deadline"),
+            "deadline_days": form.get("deadline_days"),
         }
         supplier_values = form.getlist("supplier_ids")
         supplier_ids = _coerce_supplier_ids(supplier_values)
@@ -160,7 +164,16 @@ async def create_rfq(
     close_expired_rfqs(db)
 
     submission, attachments = await _extract_procurement_payload(request)
-    normalized_deadline = _ensure_deadline_in_future(submission.deadline)
+    
+    # Convert deadline_days to actual deadline datetime
+    # Set deadline to end of day (23:59:59) in Africa/Lusaka timezone
+    from datetime import timedelta
+    lusaka_tz = ZoneInfo("Africa/Lusaka")
+    now_lusaka = datetime.now(lusaka_tz)
+    deadline_date = now_lusaka.date() + timedelta(days=submission.deadline_days)
+    # Set to end of day (23:59:59)
+    deadline_lusaka = datetime.combine(deadline_date, datetime.max.time().replace(microsecond=0)).replace(tzinfo=lusaka_tz)
+    normalized_deadline = deadline_lusaka.astimezone(timezone.utc)
 
     # Procurement Officers create RFQs in draft status pending approval
     user_role = getattr(current_user, "role")
@@ -505,9 +518,6 @@ def read_rfq(
     # Implement response locking for transparency
     # If RFQ is locked and deadline hasn't passed, hide quotations from procurement
     response_locked = bool(getattr(rfq, "response_locked", False))
-    cairo_tz = ZoneInfo("Africa/Cairo")
-    current_time = datetime.now(cairo_tz)
-    
     # Check if deadline has passed (unlock responses)
     deadline_passed = False
     try:
@@ -515,11 +525,15 @@ def read_rfq(
         if rfq_deadline is not None:
             # Ensure deadline is timezone-aware for comparison
             if rfq_deadline.tzinfo is None:
-                # If no timezone, assume it's Africa/Cairo time
-                rfq_deadline = rfq_deadline.replace(tzinfo=cairo_tz)
+                # If no timezone, assume it's UTC (since we store in UTC)
+                # Or if legacy data was naive local, this might be an issue, but we assume UTC for now
+                rfq_deadline = rfq_deadline.replace(tzinfo=timezone.utc)
             else:
-                # Convert to Africa/Cairo for comparison
-                rfq_deadline = rfq_deadline.astimezone(cairo_tz)
+                # Convert to UTC for comparison
+                rfq_deadline = rfq_deadline.astimezone(timezone.utc)
+            
+            # Compare with current UTC time
+            current_time = datetime.now(timezone.utc)
             deadline_passed = rfq_deadline < current_time
     except (AttributeError, TypeError):
         deadline_passed = False

@@ -168,7 +168,7 @@ const SupplierDashboard: React.FC = () => {
     try {
       const formData = new FormData();
       const baseAmount = parseFloat(quoteAmount);
-      
+
       // Calculate tax amount based on tax type
       let taxAmount = 0;
       if (quoteTaxType === "VAT") {
@@ -176,7 +176,7 @@ const SupplierDashboard: React.FC = () => {
       } else if (quoteTaxType === "TOT") {
         taxAmount = baseAmount * 0.05; // 5% TOT
       }
-      
+
       formData.append("amount", quoteAmount);
       formData.append("currency", quoteCurrency);
       if (quoteTaxType !== "None") {
@@ -214,9 +214,9 @@ const SupplierDashboard: React.FC = () => {
     try {
       await apiClient.put(`/api/messages/${messageId}/read`);
       const updatedAt = new Date().toISOString();
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.id === messageId 
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
+          msg.id === messageId
             ? { ...msg, status: 'read' as const, read_at: updatedAt }
             : msg
         )
@@ -276,7 +276,7 @@ const SupplierDashboard: React.FC = () => {
       setFeedback("Reply sent successfully!");
       setIsReplyMode(false);
       setReplyContent("");
-      
+
       // Reload messages
       const messagesRes = await apiClient.get<MessageListResponse>("/api/messages/received");
       setMessages(messagesRes.data.messages);
@@ -310,7 +310,7 @@ const SupplierDashboard: React.FC = () => {
       const response = await apiClient.get(`/api/rfqs/${rfqId}/documents/${docId}/download`, {
         responseType: 'blob',
       });
-      
+
       // Create a blob URL and trigger download
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -332,7 +332,7 @@ const SupplierDashboard: React.FC = () => {
         `/api/rfqs/${rfqId}/quotations/${quotationId}/purchase-order`,
         { responseType: 'blob' }
       );
-      
+
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -342,7 +342,7 @@ const SupplierDashboard: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       setFeedback('Purchase Order downloaded successfully!');
     } catch (err) {
       console.error('Failed to download Purchase Order:', err);
@@ -535,21 +535,20 @@ const SupplierDashboard: React.FC = () => {
                 const isNewInvitation =
                   !invitation.has_responded && !openedInvitationIds.includes(invitation.rfq_id);
                 const isExpired = new Date(invitation.deadline) <= new Date();
-                const canRespond = !invitation.has_responded && 
-                                   invitation.rfq_status === "open" && 
-                                   !isExpired;
+                const canRespond = !invitation.has_responded &&
+                  invitation.rfq_status === "open" &&
+                  !isExpired;
 
                 return (
                   <button
                     key={`${invitation.rfq_id}-${invitation.invited_at}`}
                     onClick={() => openInvitationDetails(invitation)}
-                    className={`w-full rounded-xl border p-4 text-left transition ${
-                      isSelected
-                        ? "border-primary bg-primary/5"
-                        : isExpired
+                    className={`w-full rounded-xl border p-4 text-left transition ${isSelected
+                      ? "border-primary bg-primary/5"
+                      : isExpired
                         ? "border-slate-200 bg-slate-50"
                         : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold text-slate-800 text-sm leading-tight">
@@ -572,7 +571,11 @@ const SupplierDashboard: React.FC = () => {
                         {invitationStatusLabels[statusKey] ?? statusKey.replace(/_/g, " ")}
                       </span>
                       <p className={`text-xs ${isExpired ? 'text-rose-500 font-medium' : 'text-slate-400'}`}>
-                        {formatDisplay(invitation.deadline, { dateStyle: 'medium', timeStyle: 'short' })}
+                        {new Date(invitation.deadline).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
                       </p>
                     </div>
                   </button>
@@ -632,7 +635,11 @@ const SupplierDashboard: React.FC = () => {
                         {order.rfq_category} • {formatCurrency(order.amount, order.currency)}
                       </p>
                       <p className="text-xs text-slate-400 mt-1">
-                        Approved: {order.approved_at ? new Date(order.approved_at).toLocaleDateString() : "N/A"}
+                        Approved: {order.approved_at ? new Date(order.approved_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        }) : "N/A"}
                       </p>
                       {order.notes && (
                         <p className="mt-2 text-xs text-slate-600 line-clamp-2">{order.notes}</p>
@@ -695,7 +702,11 @@ const SupplierDashboard: React.FC = () => {
               <div>
                 <p className="text-xs font-semibold uppercase text-slate-400">Deadline</p>
                 <p className="mt-1 text-slate-600">
-                  {formatDisplay(selectedInvitation.deadline, { dateStyle: 'full', timeStyle: 'short' })}
+                  {new Date(selectedInvitation.deadline).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
                 </p>
                 {new Date(selectedInvitation.deadline) <= new Date() && (
                   <p className="mt-1 text-xs text-rose-600 font-medium">⚠️ Deadline has passed - This RFQ is closed</p>
@@ -704,7 +715,11 @@ const SupplierDashboard: React.FC = () => {
               <div>
                 <p className="text-xs font-semibold uppercase text-slate-400">Invited On</p>
                 <p className="mt-1 text-slate-600">
-                  {new Date(selectedInvitation.invited_at).toLocaleDateString()}
+                  {new Date(selectedInvitation.invited_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
                 </p>
               </div>
             </div>
@@ -729,7 +744,11 @@ const SupplierDashboard: React.FC = () => {
                       <div className="flex-1">
                         <p className="text-xs font-medium text-slate-700">{doc.original_filename}</p>
                         <p className="text-xs text-slate-500">
-                          Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
+                          Uploaded {new Date(doc.uploaded_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
                         </p>
                       </div>
                       <button
@@ -753,7 +772,7 @@ const SupplierDashboard: React.FC = () => {
                   {(selectedInvitation.quotation_status ??
                     activeRfqForSelectedInvitation?.quotation_status)
                     ? ` Current status: ${(selectedInvitation.quotation_status ??
-                        activeRfqForSelectedInvitation?.quotation_status)!.replace(/_/g, " ")}.`
+                      activeRfqForSelectedInvitation?.quotation_status)!.replace(/_/g, " ")}.`
                     : ""}
                 </span>
               ) : (
@@ -762,15 +781,15 @@ const SupplierDashboard: React.FC = () => {
                   {selectedInvitation.rfq_status && selectedInvitation.rfq_status !== "open"
                     ? " This RFQ is no longer accepting responses."
                     : new Date(selectedInvitation.deadline) <= new Date()
-                    ? " The deadline for this RFQ has passed."
-                    : ""}
+                      ? " The deadline for this RFQ has passed."
+                      : ""}
                 </span>
               )}
             </div>
-            {activeRfqForSelectedInvitation && 
-             !hasRespondedToSelectedInvitation && 
-             selectedInvitation.rfq_status === "open" &&
-             new Date(selectedInvitation.deadline) > new Date() ? (
+            {activeRfqForSelectedInvitation &&
+              !hasRespondedToSelectedInvitation &&
+              selectedInvitation.rfq_status === "open" &&
+              new Date(selectedInvitation.deadline) > new Date() ? (
               <div className="flex justify-end">
                 <button
                   onClick={() => {
@@ -990,8 +1009,8 @@ const SupplierDashboard: React.FC = () => {
                 <div>
                   <label className="text-xs font-medium uppercase text-slate-400">Last Invited</label>
                   <p className="mt-1 text-sm font-medium text-slate-700">
-                    {profile.last_invited_at 
-                      ? new Date(profile.last_invited_at).toLocaleDateString()
+                    {profile.last_invited_at
+                      ? formatDisplay(profile.last_invited_at)
                       : "Never"}
                   </p>
                 </div>
@@ -1016,11 +1035,10 @@ const SupplierDashboard: React.FC = () => {
                     key={message.id}
                     type="button"
                     onClick={() => handleSelectMessage(message)}
-                    className={`w-full rounded-lg border px-3 py-3 text-left text-sm transition ${
-                      isActive
-                        ? "border-blue-500 bg-blue-50 text-blue-900"
-                        : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
-                    }`}
+                    className={`w-full rounded-lg border px-3 py-3 text-left text-sm transition ${isActive
+                      ? "border-blue-500 bg-blue-50 text-blue-900"
+                      : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                      }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-semibold text-slate-800">{message.subject}</span>
@@ -1031,7 +1049,7 @@ const SupplierDashboard: React.FC = () => {
                       ) : null}
                     </div>
                     <p className="mt-1 text-xs text-slate-500">
-                      {new Date(message.created_at).toLocaleString()}
+                      {formatDisplay(message.created_at)}
                     </p>
                     <p className="mt-2 text-xs text-slate-600">
                       {message.content.length > 80
@@ -1049,21 +1067,21 @@ const SupplierDashboard: React.FC = () => {
                     <h4 className="text-lg font-semibold text-slate-800">{selectedMessage.subject}</h4>
                     <p className="text-xs text-slate-500">
                       From {selectedMessage.sender_name} ·{" "}
-                      {new Date(selectedMessage.created_at).toLocaleString()}
+                      {formatDisplay(selectedMessage.created_at)}
                     </p>
                     <p className="text-xs text-slate-500">
                       Regarding {selectedMessage.supplier_name}
                     </p>
                     {selectedMessage.read_at ? (
                       <p className="text-xs text-slate-500">
-                        Read {new Date(selectedMessage.read_at).toLocaleString()}
+                        Read {formatDisplay(selectedMessage.read_at)}
                       </p>
                     ) : null}
                   </div>
                   <div className="rounded-lg bg-white p-4 text-sm text-slate-700 whitespace-pre-wrap">
                     {selectedMessage.content}
                   </div>
-                  
+
                   {/* Reply Section */}
                   {isReplyMode ? (
                     <div className="space-y-3 border-t border-slate-200 pt-4">

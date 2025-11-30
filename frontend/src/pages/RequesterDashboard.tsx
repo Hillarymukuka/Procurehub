@@ -329,10 +329,15 @@ const RequesterDashboard: React.FC = () => {
     }
   };
 
-  const getDocumentDownloadUrl = (requestId: number) => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL ?? "";
-    const baseUrl = apiBase ? apiBase.replace(/\/$/, "") : "/api";
-    return `${baseUrl}/requests/${requestId}/document`;
+  const getDocumentDownloadUrl = (requestId: number, documentId: number) => {
+    const raw = import.meta.env.VITE_API_BASE_URL ?? "";
+    const normalized = raw ? raw.replace(/\/$/, "") : "";
+    const apiBase = normalized
+      ? normalized.endsWith("/api")
+        ? normalized
+        : `${normalized}/api`
+      : "/api";
+    return `${apiBase}/requests/${requestId}/documents/${documentId}`;
   };
 
   const counts = useMemo(() => {
@@ -361,14 +366,14 @@ const RequesterDashboard: React.FC = () => {
     if (request.finance_rejection_reason) {
       return `Finance: ${request.finance_rejection_reason}`;
     }
-  if (request.finance_notes) {
-    return request.finance_notes;
-  }
-  if (request.procurement_notes) {
-    return request.procurement_notes;
-  }
-  return "No updates shared yet.";
-};
+    if (request.finance_notes) {
+      return request.finance_notes;
+    }
+    if (request.procurement_notes) {
+      return request.procurement_notes;
+    }
+    return "No updates shared yet.";
+  };
 
   return (
     <Layout
@@ -474,8 +479,8 @@ const RequesterDashboard: React.FC = () => {
               <label className="text-sm font-medium text-slate-700">Needed By</label>
               <input
                 required
-                type="datetime-local"
-                value={form.needed_by}
+                type="date"
+                value={form.needed_by.split('T')[0]}
                 onChange={(event) => setForm((prev) => ({ ...prev, needed_by: event.target.value }))}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
@@ -613,13 +618,12 @@ const RequesterDashboard: React.FC = () => {
                         ) : null}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
-                        {new Date(request.needed_by).toLocaleString()}
+                        {new Date(request.needed_by).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                            statusColors[request.status]
-                          }`}
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusColors[request.status]
+                            }`}
                         >
                           {statusLabels[request.status]}
                         </span>
@@ -666,7 +670,7 @@ const RequesterDashboard: React.FC = () => {
               <div>
                 <p className="text-xs font-semibold uppercase text-slate-500">Needed By</p>
                 <p className="mt-1 text-slate-700">
-                  {new Date(selectedRequest.needed_by).toLocaleString()}
+                  {new Date(selectedRequest.needed_by).toLocaleDateString()}
                 </p>
               </div>
               <div>
@@ -701,8 +705,8 @@ const RequesterDashboard: React.FC = () => {
                   <dd className="text-right">
                     {selectedRequest.procurement_reviewed_at
                       ? `Reviewed ${new Date(
-                          selectedRequest.procurement_reviewed_at
-                        ).toLocaleString()}`
+                        selectedRequest.procurement_reviewed_at
+                      ).toLocaleDateString()}`
                       : "Awaiting review"}
                   </dd>
                 </div>
@@ -712,8 +716,8 @@ const RequesterDashboard: React.FC = () => {
                     {selectedRequest.rfq_id
                       ? selectedRequest.rfq_invited_at
                         ? `Sent to suppliers ${new Date(
-                            selectedRequest.rfq_invited_at
-                          ).toLocaleString()}`
+                          selectedRequest.rfq_invited_at
+                        ).toLocaleDateString()}`
                         : "RFQ linked"
                       : "Not yet issued"}
                   </dd>
@@ -754,11 +758,11 @@ const RequesterDashboard: React.FC = () => {
                       <div>
                         <p className="font-medium text-slate-800">{document.original_filename}</p>
                         <p className="text-slate-500">
-                          Uploaded {new Date(document.uploaded_at).toLocaleString()}
+                          Uploaded {new Date(document.uploaded_at).toLocaleDateString()}
                         </p>
                       </div>
                       <a
-                        href={getDocumentDownloadUrl(selectedRequest.id)}
+                        href={getDocumentDownloadUrl(selectedRequest.id, document.id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="rounded border border-primary px-3 py-1 font-semibold text-primary hover:bg-primary/10"
@@ -828,7 +832,7 @@ const RequesterDashboard: React.FC = () => {
                     <p className="text-xs uppercase text-slate-500">
                       Deadline:{" "}
                       <span className="text-slate-700">
-                        {new Date(rfqDetails.deadline).toLocaleString()}
+                        {new Date(rfqDetails.deadline).toLocaleDateString()}
                       </span>
                     </p>
                     <p className="text-xs uppercase text-slate-500">Summary</p>

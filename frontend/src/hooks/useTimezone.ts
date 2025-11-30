@@ -13,7 +13,7 @@ import {
 
 export function useTimezone() {
   const { user } = useAuth();
-  const userTimezone = user?.timezone || "Africa/Cairo";
+  const userTimezone = user?.timezone || "Africa/Lusaka";
 
   return {
     /**
