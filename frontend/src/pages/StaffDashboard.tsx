@@ -1040,6 +1040,37 @@ const StaffDashboard: React.FC = () => {
     return `${getApiBase()}/suppliers/documents/${documentId}/download`;
   };
 
+  // Authenticated download handlers
+  const handleDownloadFile = async (url: string, filename: string) => {
+    try {
+      const response = await apiClient.get(url, { responseType: 'blob' });
+      const blob = new Blob([response.data]);
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError('Failed to download file. Please try again.');
+    }
+  };
+
+  const handleDownloadRequestDocument = (requestId: number, documentId: number, filename: string) => {
+    handleDownloadFile(`/api/requests/${requestId}/documents/${documentId}`, filename);
+  };
+
+  const handleDownloadQuotationDocument = (rfqId: number, quotationId: number, filename: string) => {
+    handleDownloadFile(`/api/rfqs/${rfqId}/quotations/${quotationId}/download`, filename);
+  };
+
+  const handleDownloadSupplierDocument = (documentId: number, filename: string) => {
+    handleDownloadFile(`/api/suppliers/documents/${documentId}/download`, filename);
+  };
+
   const isImageDocument = (document: RequestDocument) => {
     const name = (document.original_filename || document.file_path || "").toLowerCase();
     return /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(name);
@@ -2965,18 +2996,17 @@ const StaffDashboard: React.FC = () => {
                     ) : (
                       <div className="mt-3 space-y-2">
                         {selectedRequest.documents.slice(0, 4).map((document) => (
-                          <a
+                          <button
+                            type="button"
                             key={document.id}
-                            href={getRequestDocumentDownloadUrl(selectedRequest.id, document.id)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-between rounded border border-slate-200 px-3 py-2 text-xs text-slate-700 transition hover:border-secondary hover:text-secondary"
+                            onClick={() => handleDownloadRequestDocument(selectedRequest.id, document.id, document.original_filename)}
+                            className="flex w-full items-center justify-between rounded border border-slate-200 px-3 py-2 text-xs text-slate-700 transition hover:border-secondary hover:text-secondary"
                           >
                             <span className="truncate pr-3">{document.original_filename}</span>
                             <span className="text-[10px] uppercase text-slate-500">
                               {new Date(document.uploaded_at).toLocaleDateString()}
                             </span>
-                          </a>
+                          </button>
                         ))}
                         {selectedRequest.documents.length > 4 ? (
                           <button
@@ -3129,24 +3159,21 @@ const StaffDashboard: React.FC = () => {
                         </p>
                         <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
                           {imageDocuments.map((document) => (
-                            <a
+                            <button
+                              type="button"
                               key={document.id}
-                              href={getRequestDocumentDownloadUrl(selectedRequest.id, document.id)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group overflow-hidden rounded-lg border border-slate-200 shadow-sm transition hover:border-secondary hover:shadow-md"
+                              onClick={() => handleDownloadRequestDocument(selectedRequest.id, document.id, document.original_filename)}
+                              className="group overflow-hidden rounded-lg border border-slate-200 shadow-sm transition hover:border-secondary hover:shadow-md text-left"
                             >
-                              <div className="aspect-video w-full bg-slate-100">
-                                <img
-                                  src={getRequestDocumentDownloadUrl(selectedRequest.id, document.id)}
-                                  alt={document.original_filename}
-                                  className="h-full w-full object-cover transition group-hover:scale-105"
-                                />
+                              <div className="aspect-video w-full bg-slate-100 flex items-center justify-center">
+                                <svg className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
                               </div>
                               <p className="truncate px-3 py-2 text-xs text-slate-700 group-hover:text-secondary">
                                 {document.original_filename}
                               </p>
-                            </a>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -3165,14 +3192,13 @@ const StaffDashboard: React.FC = () => {
                               <span className="truncate pr-3 font-medium text-slate-800">
                                 {document.original_filename}
                               </span>
-                              <a
-                                href={getRequestDocumentDownloadUrl(selectedRequest.id, document.id)}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadRequestDocument(selectedRequest.id, document.id, document.original_filename)}
                                 className="rounded border border-primary px-3 py-1 font-semibold uppercase text-primary hover:bg-primary/10"
                               >
                                 Open
-                              </a>
+                              </button>
                             </li>
                           ))}
                         </ul>
@@ -4452,13 +4478,13 @@ const StaffDashboard: React.FC = () => {
                           Uploaded: {new Date(document.uploaded_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <a
-                        href={getSupplierDocumentDownloadUrl(document.id)}
-                        download
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadSupplierDocument(document.id, document.original_filename)}
                         className="ml-4 rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700"
                       >
                         Download
-                      </a>
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -4587,14 +4613,13 @@ const StaffDashboard: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                    <a
-                      href={getQuotationDownloadUrl(selectedRfq.id, selectedQuotation.id)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadQuotationDocument(selectedRfq.id, selectedQuotation.id, selectedQuotation.original_filename)}
                       className="rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10"
                     >
                       Download
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>

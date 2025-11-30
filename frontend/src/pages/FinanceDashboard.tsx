@@ -49,17 +49,6 @@ interface FinanceReviewFormState {
   finance_notes: string;
   rejection_reason: string;
 }
-const getQuotationDownloadUrl = (rfqId: number, quotationId: number) => {
-  const raw = import.meta.env.VITE_API_BASE_URL ?? "";
-  const normalized = raw ? raw.replace(/\/$/, "") : "";
-  const apiBase = normalized
-    ? normalized.endsWith("/api")
-      ? normalized
-      : `${normalized}/api`
-    : "/api";
-  return `${apiBase}/rfqs/${rfqId}/quotations/${quotationId}/download`;
-};
-
 
 const emptyFinanceForm: FinanceReviewFormState = {
   budget_amount: "",
@@ -88,6 +77,25 @@ const FinanceDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [financeForm, setFinanceForm] = useState<FinanceReviewFormState>({ ...emptyFinanceForm });
+
+  // Authenticated download handler
+  const handleDownloadQuotation = async (rfqId: number, quotationId: number, filename: string) => {
+    try {
+      const response = await apiClient.get(`/api/rfqs/${rfqId}/quotations/${quotationId}/download`, { responseType: 'blob' });
+      const blob = new Blob([response.data]);
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError('Failed to download file. Please try again.');
+    }
+  };
 
   const loadRequests = async (retryCount = 0) => {
     setIsLoadingRequests(true);
@@ -959,14 +967,13 @@ const FinanceDashboard: React.FC = () => {
                             {quotation.status}
                           </span>
                           {quotation.document_path && quotation.original_filename ? (
-                            <a
-                              href={getQuotationDownloadUrl(selectedRfq.id, quotation.id)}
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadQuotation(selectedRfq.id, quotation.id, quotation.original_filename)}
                               className="text-xs font-semibold text-primary hover:underline"
-                              target="_blank"
-                              rel="noopener noreferrer"
                             >
                               View Document
-                            </a>
+                            </button>
                           ) : null}
                           {quotation.status === "pending_finance_approval" ? (
                             <div className="flex items-center gap-2">

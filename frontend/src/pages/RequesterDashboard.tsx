@@ -329,15 +329,23 @@ const RequesterDashboard: React.FC = () => {
     }
   };
 
-  const getDocumentDownloadUrl = (requestId: number, documentId: number) => {
-    const raw = import.meta.env.VITE_API_BASE_URL ?? "";
-    const normalized = raw ? raw.replace(/\/$/, "") : "";
-    const apiBase = normalized
-      ? normalized.endsWith("/api")
-        ? normalized
-        : `${normalized}/api`
-      : "/api";
-    return `${apiBase}/requests/${requestId}/documents/${documentId}`;
+  // Authenticated download handler
+  const handleDownloadDocument = async (requestId: number, documentId: number, filename: string) => {
+    try {
+      const response = await apiClient.get(`/api/requests/${requestId}/documents/${documentId}`, { responseType: 'blob' });
+      const blob = new Blob([response.data]);
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError('Failed to download file. Please try again.');
+    }
   };
 
   const counts = useMemo(() => {
@@ -761,14 +769,13 @@ const RequesterDashboard: React.FC = () => {
                           Uploaded {new Date(document.uploaded_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <a
-                        href={getDocumentDownloadUrl(selectedRequest.id, document.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadDocument(selectedRequest.id, document.id, document.original_filename)}
                         className="rounded border border-primary px-3 py-1 font-semibold text-primary hover:bg-primary/10"
                       >
                         Download
-                      </a>
+                      </button>
                     </li>
                   ))}
                 </ul>
